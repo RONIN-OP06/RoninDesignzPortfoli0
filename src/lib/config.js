@@ -1,14 +1,28 @@
-// Application configuration
+function getApiBaseUrl() {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  if (typeof window !== 'undefined') {
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    if (isProduction) {
+      return window.location.origin + '/.netlify/functions';
+    }
+  }
+  
+  return 'http://localhost:3000/api';
+}
+
 export const CONFIG = {
   API: {
-    BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+    BASE_URL: getApiBaseUrl(),
     ENDPOINTS: {
-      MEMBERS: '/api/members',
-      LOGIN: '/api/login',
-      CONTACT: '/api/contact',
-      MESSAGES: '/api/messages',
-      PROJECTS: '/api/projects',
-      UPLOAD: '/api/upload'
+      MEMBERS: '/members',
+      LOGIN: '/login',
+      CONTACT: '/contact',
+      MESSAGES: '/messages',
+      PROJECTS: '/projects',
+      UPLOAD: '/upload'
     }
   },
   

@@ -8,11 +8,9 @@ export function ParallaxBackground() {
   useEffect(() => {
     if (!canvasRef.current) return
 
-    // Detect mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
     const isLowPerformance = navigator.hardwareConcurrency < 4 || (navigator.deviceMemory && navigator.deviceMemory < 4)
     
-    // Disable on mobile or low-performance devices
     if (isMobile || isLowPerformance) {
       return
     }
@@ -26,7 +24,6 @@ export function ParallaxBackground() {
     let mouseY = 0
 
     try {
-      // setup scene
       scene = new THREE.Scene()
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
       camera.position.z = 5
@@ -40,8 +37,6 @@ export function ParallaxBackground() {
       renderer.setSize(window.innerWidth, window.innerHeight)
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
       renderer.setClearColor(0x000000, 0)
-
-      // parallax bg shader
       bgGeometry = new THREE.PlaneGeometry(2, 2)
       bgMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -67,32 +62,25 @@ export function ParallaxBackground() {
         void main() {
           vec2 uv = vUv;
           
-          // parallax from scroll/mouse
           vec2 parallax = vec2(mouseX * 0.1, mouseY * 0.1 + scrollY * 0.3);
           uv += parallax;
           
-          // gradient colors
           vec3 color1 = vec3(0.1, 0.05, 0.2);
           vec3 color2 = vec3(0.2, 0.1, 0.3);
           vec3 color3 = vec3(0.15, 0.05, 0.25);
           vec3 color4 = vec3(0.05, 0.1, 0.2);
           
-          // radial gradient
           float dist = distance(uv, vec2(0.5, 0.5));
           vec3 bgColor = mix(color1, color2, dist * 2.0);
           
-          // waves
           float wave1 = sin(uv.x * 5.0 + time * 0.5) * 0.02;
           float wave2 = sin(uv.y * 5.0 + time * 0.7) * 0.02;
           float wave3 = sin((uv.x + uv.y) * 3.0 + time * 0.3) * 0.03;
           
           bgColor += wave1 + wave2 + wave3;
-          
-          // color shift on scroll
           bgColor = mix(bgColor, color3, scrollY * 0.2);
           bgColor = mix(bgColor, color4, sin(time + scrollY) * 0.1);
           
-          // noise texture
           float noise = sin(uv.x * 20.0 + time) * sin(uv.y * 20.0 + time * 0.7) * 0.01;
           bgColor += noise;
           
@@ -105,7 +93,6 @@ export function ParallaxBackground() {
       bgPlane.position.z = -10
       scene.add(bgPlane)
 
-      // particles - reduced count for better performance
       const particleCount = 200
       particles = new THREE.BufferGeometry()
     const positions = new Float32Array(particleCount * 3)
@@ -140,7 +127,6 @@ export function ParallaxBackground() {
       particleSystem = new THREE.Points(particles, particleMaterial)
       scene.add(particleSystem)
 
-      // Mouse tracking - throttled for performance
       let mouseTimeout = null
       const handleMouseMove = (e) => {
         if (mouseTimeout) return
@@ -153,7 +139,6 @@ export function ParallaxBackground() {
       
       window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
-      // Scroll tracking - throttled for performance
       let scrollTimeout = null
       const handleScroll = () => {
         if (scrollTimeout) return
@@ -165,9 +150,8 @@ export function ParallaxBackground() {
       }
       
       window.addEventListener('scroll', handleScroll, { passive: true })
-      handleScroll() // init scroll
+      handleScroll()
 
-      // resize handler
       const handleResize = () => {
         const width = window.innerWidth
         const height = window.innerHeight
@@ -178,7 +162,6 @@ export function ParallaxBackground() {
       
       window.addEventListener('resize', handleResize, { passive: true })
 
-      // animation loop
       let time = 0
       let isMounted = true
       
@@ -194,7 +177,6 @@ export function ParallaxBackground() {
         animationId = requestAnimationFrame(animate)
         time += 0.01
         
-        // update shader uniforms (only if material exists)
         if (bgMaterial?.uniforms) {
           bgMaterial.uniforms.time.value = time
           bgMaterial.uniforms.scrollY.value = scrollYRef.current
@@ -202,7 +184,6 @@ export function ParallaxBackground() {
           bgMaterial.uniforms.mouseY.value = mouseY
         }
         
-        // animate particles (only if system exists)
         if (particleSystem?.geometry?.attributes?.position) {
           particleSystem.rotation.y += 0.001
           const positions = particleSystem.geometry.attributes.position.array
@@ -213,7 +194,6 @@ export function ParallaxBackground() {
           particleSystem.geometry.attributes.position.needsUpdate = true
         }
         
-        // render only if all components exist
         if (renderer && scene && camera) {
           renderer.render(scene, camera)
         }
@@ -221,7 +201,6 @@ export function ParallaxBackground() {
       
       animate()
 
-      // cleanup
       return () => {
         isMounted = false
         if (animationId !== null) {

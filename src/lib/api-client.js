@@ -1,9 +1,31 @@
 // API client for backend communication
 import { CONFIG } from './config';
 
+function getApiBaseUrl() {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  if (typeof window !== 'undefined') {
+    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+    if (isProduction) {
+      return window.location.origin + '/.netlify/functions';
+    }
+  }
+  
+  return 'http://localhost:3000/api';
+}
+
 export class ApiClient {
-  constructor(baseUrl = CONFIG.API.BASE_URL) {
-    this.baseUrl = baseUrl;
+  constructor() {
+    this._baseUrl = null;
+  }
+
+  get baseUrl() {
+    if (!this._baseUrl) {
+      this._baseUrl = getApiBaseUrl();
+    }
+    return this._baseUrl;
   }
 
   async _request(endpoint, options = {}) {
@@ -111,26 +133,26 @@ export class ApiClient {
   }
 
   async getProjects() {
-    return this._request('/api/projects', {
+    return this._request(CONFIG.API.ENDPOINTS.PROJECTS, {
       method: 'GET',
     });
   }
 
   async saveProject(projectData) {
-    return this._request('/api/projects', {
+    return this._request(CONFIG.API.ENDPOINTS.PROJECTS, {
       method: 'POST',
       body: JSON.stringify(projectData),
     });
   }
 
   async deleteProject(projectId) {
-    return this._request(`/api/projects/${projectId}`, {
+    return this._request(`${CONFIG.API.ENDPOINTS.PROJECTS}/${projectId}`, {
       method: 'DELETE',
     });
   }
 
   async uploadFile(file, category) {
-    const url = `${this.baseUrl}/api/upload`;
+    const url = `${this.baseUrl}${CONFIG.API.ENDPOINTS.UPLOAD}`;
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', category);
