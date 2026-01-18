@@ -90,7 +90,8 @@ export async function handler(event, context) {
     await ensureMembersFile();
     const members = await loadMembers();
 
-    const member = members.find(m => m.email && m.email.toLowerCase() === email.toLowerCase());
+    const normalizedEmail = email.trim().toLowerCase();
+    const member = members.find(m => m.email && m.email.trim().toLowerCase() === normalizedEmail);
     
     if (!member) {
       return {
