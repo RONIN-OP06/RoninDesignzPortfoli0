@@ -70,9 +70,10 @@ export async function handler(event, context) {
       body: JSON.stringify({ message: 'Message sent successfully! I\'ll get back to you soon.', messageId: newMessage.id })
     };
   } catch (error) {
+    console.error('Contact error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to send message. Please try again later.' })
+      body: JSON.stringify({ error: 'Failed to send message. Please try again later.', details: error.message })
     };
   }
 }

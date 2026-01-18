@@ -1,5 +1,5 @@
 import { initializeMembersFile, getMembersFile } from './_shared/utils.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import fs from 'fs/promises';
 
 export async function handler(event, context) {
@@ -59,9 +59,10 @@ export async function handler(event, context) {
       };
     }
   } catch (error) {
+    console.error('Login error:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to process login' })
+      body: JSON.stringify({ error: 'Failed to process login', details: error.message })
     };
   }
 }

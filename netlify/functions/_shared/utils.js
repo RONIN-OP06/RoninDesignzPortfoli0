@@ -1,15 +1,14 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import bcrypt from 'bcrypt';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_DIR = path.join(__dirname, '..', '..', 'data');
+const DATA_DIR = process.env.NETLIFY ? '/tmp' : path.resolve(__dirname, '..', '..', 'data');
 const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
 const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
-const PROJECTS_FILE = path.join(__dirname, '..', '..', 'src', 'data', 'projects.js');
+const PROJECTS_FILE = path.resolve(__dirname, '..', '..', 'src', 'data', 'projects.js');
 const PROJECTS_FILE_URL = pathToFileURL(PROJECTS_FILE).href;
 
 export async function ensureDataFiles() {

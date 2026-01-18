@@ -1,5 +1,5 @@
 import { initializeMembersFile, getMembersFile } from './_shared/utils.js';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import fs from 'fs/promises';
 
 export async function handler(event, context) {
@@ -13,9 +13,10 @@ export async function handler(event, context) {
         body: JSON.stringify(members)
       };
     } catch (error) {
+      console.error('Members GET error:', error);
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to read members' })
+        body: JSON.stringify({ error: 'Failed to read members', details: error.message })
       };
     }
   }
@@ -68,9 +69,10 @@ export async function handler(event, context) {
         body: JSON.stringify({ message: 'Member registered successfully', member: memberWithoutPassword })
       };
     } catch (error) {
+      console.error('Members POST error:', error);
       return {
         statusCode: 500,
-        body: JSON.stringify({ error: 'Failed to create member' })
+        body: JSON.stringify({ error: 'Failed to create member', details: error.message })
       };
     }
   }
