@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ronin Beerwinkel - CV</title>
+    <style>
+        @page {
+            margin: 1.5cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #fff;
+            font-size: 11pt;
+        }
+        
+        .container {
+            max-width: 210mm;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 32pt;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .header .subtitle {
+            font-size: 14pt;
+            color: #475569;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 10pt;
+            color: #64748b;
+        }
+        
+        .contact-info span {
+            padding: 0 10px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .section-title {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #1e293b;
+            border-bottom: 2px solid #2563eb;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .summary {
+            text-align: justify;
+            font-size: 11pt;
+            line-height: 1.7;
+            color: #334155;
+            margin-bottom: 20px;
+        }
+        
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .skill-category {
+            margin-bottom: 15px;
+        }
+        
+        .skill-category h3 {
+            font-size: 12pt;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 10pt;
+        }
+        
+        .skill-category ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .skill-category li {
+            font-size: 10pt;
+            color: #475569;
+            padding: 3px 0;
+            border-left: 3px solid #3b82f6;
+            padding-left: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .experience-item {
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+        
+        .experience-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+        
+        .job-title {
+            font-size: 13pt;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .company {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #475569;
+            font-style: italic;
+        }
+        
+        .date {
+            font-size: 10pt;
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .description {
+            font-size: 10pt;
+            color: #334155;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .achievements {
+            margin-top: 10px;
+        }
+        
+        .achievements h4 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        
+        .achievements ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .achievements li {
+            font-size: 10pt;
+            color: #475569;
+            padding: 4px 0 4px 20px;
+            position: relative;
+            line-height: 1.5;
+        }
+        
+        .achievements li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+        
+        .project-item {
+            margin-bottom: 20px;
+            page-break-inside: avoid;
+        }
+        
+        .project-title {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .project-subtitle {
+            font-size: 10pt;
+            color: #64748b;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        .project-features {
+            margin-top: 10px;
+        }
+        
+        .project-features h4 {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        
+        .project-features ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .project-features li {
+            font-size: 10pt;
+            color: #475569;
+            padding: 3px 0 3px 15px;
+            position: relative;
+        }
+        
+        .project-features li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+        
+        .tech-tags {
+            margin-top: 10px;
+            font-size: 9pt;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .achievements-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .achievements-list li {
+            font-size: 10pt;
+            color: #475569;
+            padding: 5px 0 5px 20px;
+            position: relative;
+            line-height: 1.6;
+        }
+        
+        .achievements-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 9pt;
+            color: #94a3b8;
+            font-style: italic;
+        }
+        
+        @media print {
+            body {
+                background: white;
+            }
+            
+            .container {
+                padding: 0;
+            }
+            
+            .section {
+                page-break-inside: avoid;
+            }
+            
+            .experience-item {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>RONIN BEERWINKEL</h1>
+            <div class="subtitle">Full-Stack Developer & 3D Designer</div>
+            <div class="contact-info">
+                <span>📧 roninsyoutub123@gmail.com</span>
+                <span>📱 +27 65 736 5099</span>
+                <span>📍 Cape Town, South Africa</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Professional Summary</div>
+            <div class="summary">
+                Dynamic Full-Stack Developer and 3D Designer with a proven track record of building scalable web applications and creating photorealistic 3D visualizations. Expert in modern JavaScript frameworks, RESTful API development, and interactive 3D graphics. Combines technical expertise with creative vision to deliver exceptional user experiences. Strong background in React ecosystem, Express.js backend development, and Blender 3D design. Passionate about writing clean, maintainable code and creating visually stunning digital experiences.
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Technical Expertise</div>
+            <div class="skills-grid">
+                <div class="skill-category">
+                    <h3>Frontend Technologies</h3>
+                    <ul>
+                        <li>React 18, React Router, Vite</li>
+                        <li>JavaScript (ES6+), JSX, HTML5, CSS3</li>
+                        <li>Tailwind CSS, Shadcn UI</li>
+                        <li>Three.js, WebGL, 3D Graphics</li>
+                        <li>Atomic Design Principles</li>
+                        <li>Responsive Design</li>
+                    </ul>
+                </div>
+                <div class="skill-category">
+                    <h3>Backend Technologies</h3>
+                    <ul>
+                        <li>Node.js, Express.js</li>
+                        <li>RESTful API Design</li>
+                        <li>Authentication & Authorization</li>
+                        <li>JSON Processing</li>
+                        <li>CORS Configuration</li>
+                        <li>Middleware Development</li>
+                    </ul>
+                </div>
+                <div class="skill-category">
+                    <h3>3D Design & Visualization</h3>
+                    <ul>
+                        <li>Blender, 3D Modeling</li>
+                        <li>Animation, Rendering</li>
+                        <li>Photorealistic Rendering</li>
+                        <li>Material Design, Texturing</li>
+                        <li>Product Visualization</li>
+                        <li>Furniture Design</li>
+                    </ul>
+                </div>
+                <div class="skill-category">
+                    <h3>Tools & Practices</h3>
+                    <ul>
+                        <li>Git, GitHub</li>
+                        <li>npm, Package Management</li>
+                        <li>Vite, PostCSS, Build Tools</li>
+                        <li>VS Code</li>
+                        <li>Performance Optimization</li>
+                        <li>Debugging</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Professional Experience</div>
+            
+            <div class="experience-item">
+                <div class="experience-header">
+                    <div>
+                        <div class="job-title">Full-Stack Developer</div>
+                        <div class="company">RoninDesignz - Portfolio Platform Project</div>
+                    </div>
+                    <div class="date">2024</div>
+                </div>
+                <div class="description">
+                    Led the complete development lifecycle of a production-ready full-stack web application, demonstrating expertise in modern web technologies and best practices.
+                </div>
+                <div class="achievements">
+                    <h4>Key Responsibilities & Achievements:</h4>
+                    <ul>
+                        <li><strong>Full-Stack Architecture:</strong> Architected and developed a complete full-stack application using React 18, Express.js, and Three.js. Implemented atomic design principles for scalable, maintainable codebase structure. Created modular component architecture enabling code reusability and easy maintenance.</li>
+                        <li><strong>Backend Development:</strong> Designed and developed RESTful API endpoints for user authentication and member management. Implemented secure authentication system with login/registration functionality. Built file-based data persistence layer using JSON for member data storage. Configured Express.js middleware for CORS, JSON parsing, and static file serving.</li>
+                        <li><strong>Frontend Development:</strong> Built responsive, interactive user interfaces using React Router for multi-page navigation. Integrated Shadcn UI component library with Tailwind CSS for consistent, modern design. Implemented dark theme with glassmorphism effects and gradient accents. Created dynamic portfolio showcase with image/video galleries and category filtering.</li>
+                        <li><strong>3D Integration & Performance:</strong> Integrated Three.js for interactive 3D scenes with advanced shader effects. Implemented parallax scrolling animations and gradient background effects. Optimized React component rendering and Three.js performance for smooth user experience. Ensured responsive design across all device sizes.</li>
+                        <li><strong>User Experience:</strong> Developed comprehensive form validation with real-time error feedback. Created intuitive navigation and modal systems for project viewing. Implemented error handling and user feedback systems throughout the application.</li>
+                    </ul>
+                    <div class="tech-tags"><strong>Technologies Used:</strong> React 18, Express.js, Node.js, Three.js, React Router, Tailwind CSS, Shadcn UI, Vite, JavaScript (ES6+), JSON</div>
+                </div>
+            </div>
+
+            <div class="experience-item">
+                <div class="experience-header">
+                    <div>
+                        <div class="job-title">3D Designer & Product Visualizer</div>
+                        <div class="company">Freelance & Client Projects</div>
+                    </div>
+                    <div class="date">2024</div>
+                </div>
+                <div class="description">
+                    Delivered high-quality 3D visualization services for commercial clients, specializing in product and furniture rendering.
+                </div>
+                <div class="achievements">
+                    <h4>Key Projects & Achievements:</h4>
+                    <ul>
+                        <li><strong>Commercial Client Work:</strong> Created photorealistic 3D renders of bed designs for TheMakersShed (Cape Town, Durbanville). Developed comprehensive furniture visualization series including cupboards, drawers, and storage solutions. Produced multiple design variations while maintaining consistent quality standards.</li>
+                        <li><strong>Product Visualization:</strong> Designed and rendered detailed 3D models for jewelry, consumer products, and electronics. Created technical documentation renders showcasing internal mechanisms and components. Developed smooth animations demonstrating product features and design details.</li>
+                        <li><strong>Client Management:</strong> Successfully managed multiple design revisions within project timelines. Maintained high-quality standards across all deliverables. Collaborated with clients to understand requirements and deliver exceptional results.</li>
+                    </ul>
+                    <div class="tech-tags"><strong>Technologies Used:</strong> Blender, 3D Modeling, Animation, Rendering, Material Design, Texturing</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Notable Projects</div>
+            
+            <div class="project-item">
+                <div class="project-title">RoninDesignz - Full-Stack Portfolio Platform</div>
+                <div class="project-subtitle">Full-Stack Web Application | React, Express.js, Three.js</div>
+                <div class="description">
+                    A comprehensive portfolio platform showcasing both technical development skills and creative 3D work.
+                </div>
+                <div class="project-features">
+                    <h4>Features:</h4>
+                    <ul>
+                        <li>Complete user authentication system with secure registration and login</li>
+                        <li>RESTful API backend for member management and data persistence</li>
+                        <li>Interactive 3D visualizations using Three.js with advanced shader effects</li>
+                        <li>Dynamic portfolio showcase with image/video galleries and category filtering</li>
+                        <li>Responsive design with dark theme and modern UI components</li>
+                        <li>Real-time form validation and comprehensive error handling</li>
+                    </ul>
+                    <h4 style="margin-top: 10px;">Technical Highlights:</h4>
+                    <ul>
+                        <li>Atomic design architecture for maintainable codebase</li>
+                        <li>Centralized configuration management</li>
+                        <li>Performance-optimized React components and Three.js scenes</li>
+                        <li>RESTful API design following best practices</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="project-item">
+                <div class="project-title">3D Product Visualization Portfolio</div>
+                <div class="project-subtitle">3D Design & Rendering Projects</div>
+                <div class="project-features">
+                    <h4>Selected Works:</h4>
+                    <ul>
+                        <li><strong>Redbull 3D Model:</strong> Photorealistic can model with realistic materials, lighting, and smooth animation</li>
+                        <li><strong>Ring 3D Render:</strong> Jewelry visualization with metallic materials and gemstone reflections</li>
+                        <li><strong>Furniture Collection:</strong> Multiple bed, cupboard, and shelf designs for client presentations</li>
+                        <li><strong>Electronics Render:</strong> Technical product visualization of electronic components</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Key Achievements</div>
+            <ul class="achievements-list">
+                <li>Successfully architected and deployed a production-ready full-stack web application from concept to completion</li>
+                <li>Created a comprehensive portfolio platform demonstrating both technical and creative capabilities</li>
+                <li>Delivered high-quality 3D visualization projects for commercial clients, meeting deadlines and quality standards</li>
+                <li>Implemented secure authentication and data management systems following best practices</li>
+                <li>Optimized application performance for smooth user experience across all devices</li>
+                <li>Applied modern development practices including atomic design and component-based architecture</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Education & Certifications</div>
+            <div class="description" style="font-style: italic; color: #94a3b8;">
+                [Add your education details, degrees, certifications, online courses, bootcamps, etc.]
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Additional Information</div>
+            <div class="description">
+                <strong>Portfolio:</strong> [Your Portfolio URL]<br>
+                <strong>GitHub:</strong> [Your GitHub Profile]<br>
+                <strong>Location:</strong> Cape Town, South Africa<br>
+                <strong>Availability:</strong> Open to opportunities in Full-Stack Development, Frontend Development, Backend Development, and 3D Design roles<br>
+                <strong>Work Authorization:</strong> [Add if applicable]
+            </div>
+        </div>
+
+        <div class="footer">
+            References and portfolio samples available upon request
+        </div>
+    </div>
+</body>
+</html>

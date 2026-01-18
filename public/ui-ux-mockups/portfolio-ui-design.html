@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio UI Design - Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            color: #888;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        
+        .design-section {
+            margin-bottom: 60px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #fff;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        
+        .color-palette {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+        
+        .color-swatch {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 12px;
+            font-size: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        
+        .swatch-dark { background: #0a0a0a; color: #fff; }
+        .swatch-surface { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .swatch-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+        .swatch-accent { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #fff; }
+        
+        .mockup-frame {
+            background: #1a1a1a;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        
+        .header-mockup {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .nav-link {
+            color: #ccc;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+        
+        .nav-link:hover {
+            color: #667eea;
+        }
+        
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .project-card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 14px;
+        }
+        
+        .card-title {
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        
+        .card-desc {
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 12px;
+        }
+        
+        .card-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .tag {
+            padding: 4px 10px;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 12px;
+            font-size: 11px;
+            color: #667eea;
+        }
+        
+        .typography {
+            margin-top: 20px;
+        }
+        
+        .type-sample {
+            margin-bottom: 20px;
+        }
+        
+        .type-h1 { font-size: 48px; font-weight: 700; margin-bottom: 10px; }
+        .type-h2 { font-size: 32px; font-weight: 600; margin-bottom: 10px; }
+        .type-h3 { font-size: 24px; font-weight: 600; margin-bottom: 10px; }
+        .type-body { font-size: 16px; color: #ccc; }
+        
+        .notes {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            margin-top: 30px;
+            border-radius: 4px;
+        }
+        
+        .notes-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Portfolio Website UI Design</h1>
+        <p class="subtitle">Design system and interface mockups</p>
+        
+        <div class="design-section">
+            <h2 class="section-title">Color Palette</h2>
+            <div class="color-palette">
+                <div class="color-swatch swatch-dark">
+                    <strong>Background</strong>
+                    <span>#0a0a0a</span>
+                </div>
+                <div class="color-swatch swatch-surface">
+                    <strong>Surface</strong>
+                    <span>rgba(255,255,255,0.05)</span>
+                </div>
+                <div class="color-swatch swatch-primary">
+                    <strong>Primary</strong>
+                    <span>#667eea → #764ba2</span>
+                </div>
+                <div class="color-swatch swatch-accent">
+                    <strong>Accent</strong>
+                    <span>#f093fb → #f5576c</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="design-section">
+            <h2 class="section-title">Header Navigation</h2>
+            <div class="mockup-frame">
+                <div class="header-mockup">
+                    <div class="logo">RoninDesignz</div>
+                    <div class="nav-links">
+                        <a href="#" class="nav-link">Home</a>
+                        <a href="#" class="nav-link">Portfolio</a>
+                        <a href="#" class="nav-link">About</a>
+                        <a href="#" class="nav-link">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="design-section">
+            <h2 class="section-title">Project Gallery Grid</h2>
+            <div class="mockup-frame">
+                <div class="card-grid">
+                    <div class="project-card">
+                        <div class="card-image">Project Image</div>
+                        <div class="card-title">3D Design Project</div>
+                        <div class="card-desc">A detailed 3D model showcasing realistic materials and lighting.</div>
+                        <div class="card-tags">
+                            <span class="tag">Blender</span>
+                            <span class="tag">3D Rendering</span>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <div class="card-image">Project Image</div>
+                        <div class="card-title">UI/UX Design</div>
+                        <div class="card-desc">Modern interface design with focus on user experience.</div>
+                        <div class="card-tags">
+                            <span class="tag">Figma</span>
+                            <span class="tag">React</span>
+                        </div>
+                    </div>
+                    <div class="project-card">
+                        <div class="card-image">Project Image</div>
+                        <div class="card-title">Illustration Work</div>
+                        <div class="card-desc">Digital illustrations exploring color and composition.</div>
+                        <div class="card-tags">
+                            <span class="tag">Digital Art</span>
+                            <span class="tag">Illustration</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="design-section">
+            <h2 class="section-title">Typography</h2>
+            <div class="typography">
+                <div class="type-sample">
+                    <div class="type-h1">Heading 1</div>
+                    <div class="type-body">Used for main page titles and hero sections</div>
+                </div>
+                <div class="type-sample">
+                    <div class="type-h2">Heading 2</div>
+                    <div class="type-body">Section headers and category titles</div>
+                </div>
+                <div class="type-sample">
+                    <div class="type-h3">Heading 3</div>
+                    <div class="type-body">Card titles and subsection headers</div>
+                </div>
+                <div class="type-sample">
+                    <div class="type-body">Body text uses system fonts for readability. Line height is set to 1.6 for comfortable reading across all screen sizes.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notes">
+            <div class="notes-title">Design Notes</div>
+            <p>Glassmorphism effects created using backdrop-filter with semi-transparent backgrounds. Cards use subtle hover effects with transform and shadow changes. Color gradients applied to text for visual interest while maintaining readability. All interactive elements have clear hover states.</p>
+        </div>
+    </div>
+</body>
+</html>
