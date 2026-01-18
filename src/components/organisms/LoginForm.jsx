@@ -30,6 +30,8 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitMessage, setSubmitMessage] = useState("")
   const [showPassword, setShowPassword] = useState(false)
+  
+  const isAdminEmail = formData.email && isAdminUser({ email: formData.email })
 
   const handleFieldChange = useCallback((field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
