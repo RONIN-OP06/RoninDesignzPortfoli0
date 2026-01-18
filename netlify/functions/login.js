@@ -6,29 +6,34 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const isNetlify = process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME;
+const isNetlify = !!(process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME);
 const DATA_DIR = isNetlify ? '/tmp' : path.resolve(__dirname, '..', '..', 'data');
 const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json'
 };
 
 async function ensureMembersFile() {
   try {
     await fs.mkdir(DATA_DIR, { recursive: true });
   } catch (error) {
-    if (error.code !== 'EEXIST') {
-      throw error;
+    if (error.code !== 'EEXIST' && error.code !== 'EACCES') {
+      console.error('Error creating data directory:', error);
     }
   }
   
   try {
     await fs.access(MEMBERS_FILE);
   } catch {
-    await fs.writeFile(MEMBERS_FILE, JSON.stringify([], null, 2), 'utf8');
+    try {
+      await fs.writeFile(MEMBERS_FILE, JSON.stringify([], null, 2), 'utf8');
+    } catch (writeError) {
+      console.error('Error creating members file:', writeError);
+    }
   }
 }
 
@@ -38,37 +43,39 @@ async function loadMembers() {
     if (!data || !data.trim()) {
       return [];
     }
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
     if (error.code === 'ENOENT') {
       await ensureMembersFile();
       return [];
     }
-    throw error;
+    console.error('Error loading members:', error);
+    return [];
   }
 }
 
 export async function handler(event, context) {
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: corsHeaders,
-      body: ''
-    };
-  }
-
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: corsHeaders,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
-
   try {
+    if (event.httpMethod === 'OPTIONS') {
+      return {
+        statusCode: 200,
+        headers: corsHeaders,
+        body: ''
+      };
+    }
+
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Method not allowed' })
+      };
+    }
+
     let body;
     try {
-      body = JSON.parse(event.body || '{}');
+      body = typeof event.body === 'string' ? JSON.parse(event.body) : (event.body || {});
     } catch (parseError) {
       return {
         statusCode: 400,
@@ -77,7 +84,8 @@ export async function handler(event, context) {
       };
     }
 
-    const { email, password } = body;
+    const email = body.email ? String(body.email).trim() : '';
+    const password = body.password ? String(body.password) : '';
 
     if (!email || !password) {
       return {
@@ -90,8 +98,20 @@ export async function handler(event, context) {
     await ensureMembersFile();
     const members = await loadMembers();
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const member = members.find(m => m.email && m.email.trim().toLowerCase() === normalizedEmail);
+    if (!Array.isArray(members)) {
+      console.error('Members is not an array:', typeof members);
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Server configuration error' })
+      };
+    }
+
+    const normalizedEmail = email.toLowerCase();
+    const member = members.find(m => {
+      if (!m || !m.email) return false;
+      return String(m.email).trim().toLowerCase() === normalizedEmail;
+    });
     
     if (!member) {
       return {
@@ -101,51 +121,61 @@ export async function handler(event, context) {
       };
     }
 
+    if (!member.password) {
+      return {
+        statusCode: 401,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Invalid email or password' })
+      };
+    }
+
     let passwordMatch = false;
     
-    if (member.password && member.password.startsWith('$2')) {
-      try {
+    try {
+      if (String(member.password).startsWith('$2')) {
         passwordMatch = await bcrypt.compare(password, member.password);
-      } catch (bcryptError) {
-        console.error('Bcrypt compare error:', bcryptError);
-        return {
-          statusCode: 500,
-          headers: corsHeaders,
-          body: JSON.stringify({ error: 'Authentication error' })
-        };
+      } else if (member.password === password) {
+        passwordMatch = true;
+        try {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          member.password = hashedPassword;
+          const updatedMembers = members.map(m => 
+            m.id === member.id ? { ...m, password: hashedPassword } : m
+          );
+          await fs.writeFile(MEMBERS_FILE, JSON.stringify(updatedMembers, null, 2), 'utf8');
+        } catch (writeError) {
+          console.error('Password hash write error:', writeError);
+        }
       }
-    } else if (member.password === password) {
-      passwordMatch = true;
-      try {
-        member.password = await bcrypt.hash(password, 10);
-        await fs.writeFile(MEMBERS_FILE, JSON.stringify(members, null, 2), 'utf8');
-      } catch (writeError) {
-        console.error('Password hash write error:', writeError);
-      }
+    } catch (bcryptError) {
+      console.error('Bcrypt error:', bcryptError);
+      return {
+        statusCode: 500,
+        headers: corsHeaders,
+        body: JSON.stringify({ error: 'Authentication error' })
+      };
     }
 
     if (passwordMatch) {
       const adminEmails = (process.env.ADMIN_EMAILS || 'ronindesignz123@gmail.com,roninsyoutub123@gmail.com')
         .split(',')
-        .map(e => e.trim().toLowerCase());
+        .map(e => String(e).trim().toLowerCase())
+        .filter(e => e.length > 0);
       
       const isAdmin = adminEmails.includes(member.email.toLowerCase());
       
       return {
         statusCode: 200,
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        },
+        headers: corsHeaders,
         body: JSON.stringify({
           message: 'Login successful',
           member: {
-            id: member.id,
-            name: member.name,
-            email: member.email
+            id: String(member.id || ''),
+            name: String(member.name || ''),
+            email: String(member.email || '')
           },
-          token: member.id,
-          isAdmin: isAdmin
+          token: String(member.id || ''),
+          isAdmin: !!isAdmin
         })
       };
     } else {
@@ -157,6 +187,7 @@ export async function handler(event, context) {
     }
   } catch (error) {
     console.error('Login handler error:', error);
+    console.error('Error stack:', error.stack);
     return {
       statusCode: 500,
       headers: corsHeaders,
