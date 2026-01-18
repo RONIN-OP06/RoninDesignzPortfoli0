@@ -124,6 +124,12 @@ export async function handler(event, context) {
     }
 
     if (passwordMatch) {
+      const adminEmails = (process.env.ADMIN_EMAILS || 'ronindesignz123@gmail.com,roninsyoutub123@gmail.com')
+        .split(',')
+        .map(e => e.trim().toLowerCase());
+      
+      const isAdmin = adminEmails.includes(member.email.toLowerCase());
+      
       return {
         statusCode: 200,
         headers: {
@@ -137,7 +143,8 @@ export async function handler(event, context) {
             name: member.name,
             email: member.email
           },
-          token: member.id
+          token: member.id,
+          isAdmin: isAdmin
         })
       };
     } else {
