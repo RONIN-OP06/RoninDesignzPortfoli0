@@ -178,19 +178,28 @@ export function PortfolioPage() {
     return projectsByCategory.get(category) || []
   }, [projectsByCategory])
 
-  // get media for project
+  // get media for project with error handling
   const getProjectMedia = useCallback((project) => {
-    if (project.media && project.media.length > 0) {
-      return project.media
+    if (!project) return []
+    
+    try {
+      if (project.media && Array.isArray(project.media) && project.media.length > 0) {
+        // Validate and filter media array
+        return project.media.filter(m => m && m.url && (m.type === "image" || m.type === "video" || m.type === "iframe"))
+      }
+      
+      const media = []
+      if (project.image && typeof project.image === "string" && project.image.trim()) {
+        media.push({ type: "image", url: project.image.trim() })
+      }
+      if (project.video && typeof project.video === "string" && project.video.trim()) {
+        media.push({ type: "video", url: project.video.trim() })
+      }
+      return media
+    } catch (error) {
+      console.error("Error parsing project media:", error, project)
+      return []
     }
-    const media = []
-    if (project.image) {
-      media.push({ type: "image", url: project.image })
-    }
-    if (project.video) {
-      media.push({ type: "video", url: project.video })
-    }
-    return media
   }, [])
 
   // convert video url to embed format
@@ -333,28 +342,32 @@ export function PortfolioPage() {
                 {/* Project Detail Content */}
                 <div className="relative">
                   {/* Main Media Display - Full Width, No Overlay */}
-                  <div className="relative w-full min-h-[400px] md:min-h-[500px] lg:min-h-[600px] bg-gradient-to-br from-background via-background to-background overflow-hidden">
+                  <div className="relative w-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] lg:min-h-[600px] bg-gradient-to-br from-background via-background to-background overflow-hidden">
                     {currentMedia && (
-                      <div className="relative w-full h-full flex items-center justify-center p-4">
+                      <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
                         {currentMedia.type === "video" ? (
                           <>
                             {getVideoEmbedUrl(currentMedia.url)?.includes('embed') || getVideoEmbedUrl(currentMedia.url)?.includes('player.vimeo.com') ? (
                               // YouTube or Vimeo embed
                               <iframe
                                 src={getVideoEmbedUrl(currentMedia.url)}
-                                className="w-full h-full min-h-[400px] md:min-h-[500px] lg:min-h-[600px] rounded-lg shadow-2xl"
+                                className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] lg:min-h-[600px] rounded-lg shadow-2xl"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                 allowFullScreen
                                 title={selectedProject.title}
                                 frameBorder="0"
                                 loading="lazy"
+                                onError={(e) => {
+                                  console.error("Iframe load error:", e)
+                                  setVideoError({ code: 0, message: "Failed to load embedded video" })
+                                }}
                               />
                             ) : (
                               // local video
                               <>
                                 {videoError ? (
                                   // error state
-                                  <div className="relative w-full h-full min-h-[400px] md:min-h-[500px] lg:min-h-[600px] flex flex-col items-center justify-center bg-background/50 rounded-lg">
+                                  <div className="relative w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] lg:min-h-[600px] flex flex-col items-center justify-center bg-background/50 rounded-lg">
                                     {selectedProject.image && (
                                       <img
                                         src={selectedProject.image}
@@ -388,19 +401,17 @@ export function PortfolioPage() {
                                   <video
                                     key={currentMedia.url}
                                     src={currentMedia.url}
-                                    className="w-full h-full min-h-[400px] md:min-h-[500px] lg:min-h-[600px] object-contain rounded-lg shadow-2xl"
+                                    className="w-full h-full min-h-[300px] sm:min-h-[400px] md:min-h-[500px] lg:min-h-[600px] object-contain rounded-lg shadow-2xl"
                                     controls
                                     controlsList="play pause volume fullscreen"
                                     preload="metadata"
                                     poster={selectedProject.image}
                                     playsInline
+                                    webkit-playsinline="true"
                                     onError={(e) => {
                                       console.error("Video playback error:", e)
                                       const video = e.target
                                       const error = video.error
-                                      console.error("Video src:", video.src)
-                                      console.error("Video error code:", error?.code)
-                                      console.error("Video error message:", error?.message)
                                       
                                       // set error
                                       setVideoError({
@@ -408,16 +419,13 @@ export function PortfolioPage() {
                                         message: error?.message || "Unknown video error"
                                       })
                                     }}
-                                    onLoadedData={(e) => {
-                                      console.log("Video data loaded:", currentMedia.url)
+                                    onLoadedData={() => {
                                       setVideoError(null)
                                     }}
-                                    onCanPlay={(e) => {
-                                      console.log("Video can play:", currentMedia.url)
+                                    onCanPlay={() => {
                                       setVideoError(null)
                                     }}
-                                    onLoadedMetadata={(e) => {
-                                      console.log("Video metadata loaded:", currentMedia.url)
+                                    onLoadedMetadata={() => {
                                       setVideoError(null)
                                     }}
                                   >

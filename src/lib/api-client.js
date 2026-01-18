@@ -1,4 +1,4 @@
-// api calls
+// API client for backend communication
 import { CONFIG } from './config';
 
 export class ApiClient {

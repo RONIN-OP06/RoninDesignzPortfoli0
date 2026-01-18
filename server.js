@@ -15,7 +15,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const MEMBERS_FILE = path.join(__dirname, 'members.json');
 const MESSAGES_FILE = path.join(__dirname, 'messages.json');
 
@@ -69,7 +69,8 @@ app.use((req, res, next) => {
 // cors
 const allowedOrigins = [
   process.env.FRONTEND_URL,
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:3000'
 ].filter(Boolean);
 
 app.use((req, res, next) => {
@@ -668,9 +669,20 @@ export function getProjectById(id) {
   }
 )
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' })
+// Serve React app for client-side routing (production only)
+if (isProd) {
+  app.get('*', (req, res) => {
+    // Don't serve index.html for API routes
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'API endpoint not found' })
+    }
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'))
+  })
+}
+
+// 404 handler for API routes
+app.use('/api/*', (req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' })
 })
 
 // error handler
@@ -680,7 +692,11 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`\nServer running on http://localhost:${PORT}`);
+  console.log(`\n🚀 Server running on port ${PORT}`);
   console.log(`📨 Messages are stored in messages.json`);
+  console.log(`🌍 Environment: ${isProd ? 'Production' : 'Development'}`);
+  if (isProd) {
+    console.log(`✅ Frontend served from dist/ directory`);
+  }
   console.log(`All endpoints are functional\n`);
 });

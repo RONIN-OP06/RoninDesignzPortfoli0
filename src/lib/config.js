@@ -1,4 +1,4 @@
-// config stuff - keeping it all in one place
+// Application configuration
 export const CONFIG = {
   API: {
     BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',

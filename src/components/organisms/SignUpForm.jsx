@@ -164,11 +164,11 @@ export function SignUpForm() {
             </Label>
             <div className="relative">
               <Input
-                id="password"
+            id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a strong password"
-                value={formData.password}
-                onChange={(e) => handleFieldChange("password", e.target.value)}
+            placeholder="Create a strong password"
+            value={formData.password}
+            onChange={(e) => handleFieldChange("password", e.target.value)}
                 required
                 className="bg-background/50 border-input/50 focus-visible:ring-blue-500 pr-10"
               />
@@ -187,8 +187,8 @@ export function SignUpForm() {
             </div>
             <ValidationMessage 
               message={validation.password.message} 
-              isValid={validation.password.isValid} 
-            />
+            isValid={validation.password.isValid}
+          />
           </div>
 
           <FormField

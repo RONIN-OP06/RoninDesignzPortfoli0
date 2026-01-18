@@ -8,6 +8,15 @@ export function ParallaxBackground() {
   useEffect(() => {
     if (!canvasRef.current) return
 
+    // Detect mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+    const isLowPerformance = navigator.hardwareConcurrency < 4 || (navigator.deviceMemory && navigator.deviceMemory < 4)
+    
+    // Disable on mobile or low-performance devices
+    if (isMobile || isLowPerformance) {
+      return
+    }
+
     const canvas = canvasRef.current
     canvas.id = "parallax-canvas"
 
@@ -96,8 +105,8 @@ export function ParallaxBackground() {
       bgPlane.position.z = -10
       scene.add(bgPlane)
 
-      // particles
-      const particleCount = 500
+      // particles - reduced count for better performance
+      const particleCount = 200
       particles = new THREE.BufferGeometry()
     const positions = new Float32Array(particleCount * 3)
     const colors = new Float32Array(particleCount * 3)
@@ -131,21 +140,31 @@ export function ParallaxBackground() {
       particleSystem = new THREE.Points(particles, particleMaterial)
       scene.add(particleSystem)
 
-      // Mouse tracking
+      // Mouse tracking - throttled for performance
+      let mouseTimeout = null
       const handleMouseMove = (e) => {
-        mouseX = (e.clientX / window.innerWidth) * 2 - 1
-        mouseY = -(e.clientY / window.innerHeight) * 2 + 1
+        if (mouseTimeout) return
+        mouseTimeout = requestAnimationFrame(() => {
+          mouseX = (e.clientX / window.innerWidth) * 2 - 1
+          mouseY = -(e.clientY / window.innerHeight) * 2 + 1
+          mouseTimeout = null
+        })
       }
       
-      window.addEventListener('mousemove', handleMouseMove)
+      window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
-      // Scroll tracking
+      // Scroll tracking - throttled for performance
+      let scrollTimeout = null
       const handleScroll = () => {
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight
-        scrollYRef.current = docHeight > 0 ? window.scrollY / docHeight : 0
+        if (scrollTimeout) return
+        scrollTimeout = setTimeout(() => {
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight
+          scrollYRef.current = docHeight > 0 ? window.scrollY / docHeight : 0
+          scrollTimeout = null
+        }, 16) // ~60fps
       }
       
-      window.addEventListener('scroll', handleScroll)
+      window.addEventListener('scroll', handleScroll, { passive: true })
       handleScroll() // init scroll
 
       // resize handler
@@ -157,7 +176,7 @@ export function ParallaxBackground() {
         renderer.setSize(width, height)
       }
       
-      window.addEventListener('resize', handleResize)
+      window.addEventListener('resize', handleResize, { passive: true })
 
       // animation loop
       let time = 0
@@ -212,6 +231,8 @@ export function ParallaxBackground() {
         window.removeEventListener('mousemove', handleMouseMove)
         window.removeEventListener('scroll', handleScroll)
         window.removeEventListener('resize', handleResize)
+        if (scrollTimeout) clearTimeout(scrollTimeout)
+        if (mouseTimeout) cancelAnimationFrame(mouseTimeout)
         
         if (bgGeometry) bgGeometry.dispose()
         if (bgMaterial) bgMaterial.dispose()
