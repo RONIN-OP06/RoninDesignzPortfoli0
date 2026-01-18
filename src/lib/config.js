@@ -73,7 +73,7 @@ export const CONFIG = {
   },
   
   ADMIN: {
-    EMAILS: (import.meta.env.VITE_ADMIN_EMAILS || 'ronindesignz123@gmail.com,roninsyoutub123@gmail.com').split(',').map(e => e.trim())
+    EMAILS: (import.meta.env.VITE_ADMIN_EMAILS || 'ronindesignz123@gmail.com,roninsyoutub123@gmail.com').split(',').map(e => e.trim().toLowerCase())
   }
 };
 
