@@ -66,13 +66,24 @@ export function LoginForm() {
           name: response.data.member.name,
           email: response.data.member.email
         }
+        
         login(userData)
         
-        setSubmitMessage("Login successful! Redirecting...")
+        const isAdmin = response.data.isAdmin !== undefined 
+          ? response.data.isAdmin 
+          : isAdminUser(userData)
         
-        setTimeout(() => {
-          navigate(isAdminUser(userData) ? '/admin/messages' : '/contact')
-        }, 1000)
+        if (isAdmin) {
+          setSubmitMessage("Admin login successful! Redirecting to dashboard...")
+          setTimeout(() => {
+            navigate('/admin/messages')
+          }, 1000)
+        } else {
+          setSubmitMessage("Login successful! Redirecting...")
+          setTimeout(() => {
+            navigate('/contact')
+          }, 1000)
+        }
       } else {
         setSubmitMessage(response.message || "Invalid email or password. Please try again.")
         setValidation({
@@ -90,9 +101,13 @@ export function LoginForm() {
   return (
     <Card className="bg-card/80 backdrop-blur-xl border-border/50 max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-3xl mb-2">Welcome Back</CardTitle>
+        <CardTitle className="text-3xl mb-2">
+          {isAdminEmail ? 'Admin Login' : 'Welcome Back'}
+        </CardTitle>
         <CardDescription className="text-base">
-          Sign in to your account to send messages
+          {isAdminEmail 
+            ? 'Sign in to access the admin dashboard' 
+            : 'Sign in to your account to send messages'}
         </CardDescription>
       </CardHeader>
       <CardContent>
