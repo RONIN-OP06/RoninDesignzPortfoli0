@@ -5,7 +5,7 @@ import { fileURLToPath, pathToFileURL } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const DATA_DIR = process.env.NETLIFY ? '/tmp' : path.resolve(__dirname, '..', '..', 'data');
+const DATA_DIR = (process.env.NETLIFY || process.env.AWS_LAMBDA_FUNCTION_NAME) ? '/tmp' : path.resolve(__dirname, '..', '..', 'data');
 const MEMBERS_FILE = path.join(DATA_DIR, 'members.json');
 const MESSAGES_FILE = path.join(DATA_DIR, 'messages.json');
 const PROJECTS_FILE = path.resolve(__dirname, '..', '..', 'src', 'data', 'projects.js');

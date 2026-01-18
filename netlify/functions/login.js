@@ -21,8 +21,18 @@ export async function handler(event, context) {
     }
 
     await initializeMembersFile();
-    const data = await fs.readFile(getMembersFile(), 'utf8');
-    const members = JSON.parse(data);
+    let members = [];
+    try {
+      const data = await fs.readFile(getMembersFile(), 'utf8');
+      if (data.trim()) {
+        members = JSON.parse(data);
+      }
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error;
+      }
+      members = [];
+    }
 
     const member = members.find(m => m.email === email);
     if (!member) {
