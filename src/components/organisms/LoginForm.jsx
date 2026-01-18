@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -6,7 +6,6 @@ import { FormField } from "@/components/molecules/FormField"
 import { ApiClient } from "@/lib/api-client"
 import { CONFIG } from "@/lib/config"
 import { useAuth } from "@/contexts/AuthContext"
-import { isAdminUser } from "@/lib/auth-utils"
 import { Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,87 +13,57 @@ import { ValidationMessage } from "@/components/atoms/ValidationMessage"
 
 const apiClient = new ApiClient()
 
+const ADMIN_EMAILS = ['ronindesignz123@gmail.com', 'roninsyoutub123@gmail.com'].map(e => e.toLowerCase().trim())
+
 export function LoginForm() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [formData, setFormData] = useState({
-    email: "",
-    password: ""
-  })
-  
-  const [validation, setValidation] = useState({
-    email: { isValid: null, message: "" },
-    password: { isValid: null, message: "" }
-  })
-  
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitMessage, setSubmitMessage] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  
-  const isAdminEmail = formData.email && isAdminUser({ email: formData.email })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState("")
 
-  const handleFieldChange = useCallback((field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-    setValidation(prev => ({
-      ...prev,
-      [field]: { isValid: null, message: "" }
-    }))
-  }, [])
+  const isAdminEmail = email && ADMIN_EMAILS.includes(email.toLowerCase().trim())
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setSubmitMessage("")
+    setError("")
 
-    if (!formData.email || !formData.password) {
-      setSubmitMessage("Please fill in all fields.")
-      setValidation({
-        email: { isValid: false, message: formData.email ? "" : "Email is required" },
-        password: { isValid: false, message: formData.password ? "" : "Password is required" }
-      })
+    if (!email || !password) {
+      setError("Please fill in all fields")
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      const response = await apiClient.login({
-        email: formData.email,
-        password: formData.password
-      })
+      const response = await apiClient.login({ email, password })
 
-      if (response.success) {
+      if (response.success && response.data) {
+        const member = response.data.member || response.data
+        const isAdmin = response.data.isAdmin === true || member.isAdmin === true
+
         const userData = {
-          id: response.data.member.id,
-          name: response.data.member.name,
-          email: response.data.member.email
+          id: member.id,
+          name: member.name,
+          email: member.email,
+          isAdmin: isAdmin
         }
-        
+
         login(userData)
-        
-        const isAdmin = response.data.isAdmin !== undefined 
-          ? response.data.isAdmin 
-          : isAdminUser(userData)
-        
+
         if (isAdmin) {
-          setSubmitMessage("Admin login successful! Redirecting to dashboard...")
-          setTimeout(() => {
-            navigate('/admin/messages')
-          }, 1000)
+          navigate('/admin/messages')
         } else {
-          setSubmitMessage("Login successful! Redirecting...")
-          setTimeout(() => {
-            navigate('/contact')
-          }, 1000)
+          navigate('/contact')
         }
       } else {
-        setSubmitMessage(response.message || "Invalid email or password. Please try again.")
-        setValidation({
-          email: { isValid: false, message: "" },
-          password: { isValid: false, message: "" }
-        })
+        setError(response.message || "Invalid email or password")
       }
-    } catch (error) {
-      setSubmitMessage(CONFIG.MESSAGES.ERROR_CONNECTION)
+    } catch (err) {
+      setError("Connection error. Please try again.")
+      console.error('Login error:', err)
     } finally {
       setIsSubmitting(false)
     }
@@ -119,55 +88,36 @@ export function LoginForm() {
             label="Email"
             type="email"
             placeholder="your.email@example.com"
-            value={formData.email}
-            onChange={(e) => handleFieldChange("email", e.target.value)}
-            validationMessage={validation.email.message}
-            isValid={validation.email.isValid}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-foreground/90">
-              Password
-            </Label>
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
-                value={formData.password}
-                onChange={(e) => handleFieldChange("password", e.target.value)}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-background/50 border-input/50 focus-visible:ring-blue-500 pr-10"
+                className="bg-background/50 border-input/50 pr-10"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
-            <ValidationMessage 
-              message={validation.password.message} 
-              isValid={validation.password.isValid} 
-            />
           </div>
 
-          {submitMessage && (
-            <div
-              className={`p-4 rounded-lg ${
-                submitMessage.includes("successful")
-                  ? "bg-green-500/20 text-green-400 border border-green-500/50"
-                  : "bg-red-500/20 text-red-400 border border-red-500/50"
-              }`}
-            >
-              {submitMessage}
+          {error && (
+            <div className="p-4 rounded-lg bg-red-500/20 text-red-400 border border-red-500/50">
+              {error}
             </div>
           )}
 
@@ -177,15 +127,12 @@ export function LoginForm() {
             className="w-full text-lg py-6"
             disabled={isSubmitting}
           >
-            {isSubmitting ? CONFIG.MESSAGES.SUBMITTING : "Sign In"}
+            {isSubmitting ? "Signing in..." : "Sign In"}
           </Button>
 
           <div className="text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link 
-              to="/signup" 
-              className="text-primary hover:underline font-medium"
-            >
+            <Link to="/signup" className="text-primary hover:underline font-medium">
               Sign up here
             </Link>
           </div>

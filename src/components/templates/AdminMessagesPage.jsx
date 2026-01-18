@@ -18,7 +18,10 @@ export function AdminMessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState(null)
   const [error, setError] = useState("")
 
-  const isAdmin = useMemo(() => isAdminUser(user), [user])
+  const isAdmin = useMemo(() => {
+    if (user?.isAdmin === true) return true
+    return isAdminUser(user)
+  }, [user])
 
   const loadMessages = useCallback(async () => {
     try {

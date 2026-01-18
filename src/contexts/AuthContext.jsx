@@ -21,8 +21,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   const login = useCallback((userData) => {
-    setUser(userData)
-    localStorage.setItem('user', JSON.stringify(userData))
+    const userWithAdmin = {
+      ...userData,
+      isAdmin: userData.isAdmin === true
+    }
+    setUser(userWithAdmin)
+    localStorage.setItem('user', JSON.stringify(userWithAdmin))
   }, [])
 
   const logout = useCallback(() => {
