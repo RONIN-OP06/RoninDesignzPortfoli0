@@ -3,9 +3,24 @@ import bcrypt from 'bcryptjs';
 import fs from 'fs/promises';
 
 export async function handler(event, context) {
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
@@ -16,6 +31,9 @@ export async function handler(event, context) {
     if (!email || !password) {
       return {
         statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify({ error: 'Email and password are required' })
       };
     }
@@ -38,6 +56,9 @@ export async function handler(event, context) {
     if (!member) {
       return {
         statusCode: 401,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify({ error: 'Invalid email or password' })
       };
     }
@@ -56,6 +77,10 @@ export async function handler(event, context) {
     if (passwordMatch) {
       return {
         statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify({
           message: 'Login successful',
           member: { id: member.id, name: member.name, email: member.email },
@@ -65,6 +90,9 @@ export async function handler(event, context) {
     } else {
       return {
         statusCode: 401,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify({ error: 'Invalid email or password' })
       };
     }
@@ -72,6 +100,9 @@ export async function handler(event, context) {
     console.error('Login error:', error);
     return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify({ error: 'Failed to process login', details: error.message })
     };
   }
