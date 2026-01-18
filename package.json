@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "node server.js",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "keywords": [
     "portfolio",
@@ -22,7 +23,7 @@
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/ronindesignz.git"
+    "url": "https://github.com/RONIN-OP06/RoninDesignzPortfoli0.git"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
@@ -37,7 +38,6 @@
     "helmet": "^8.1.0",
     "lucide-react": "^0.309.0",
     "multer": "^2.0.2",
-    "nodemailer": "^7.0.12",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
