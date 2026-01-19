@@ -1,14 +1,13 @@
-// API client for backend communication
 import { CONFIG } from './config';
 
-function getApiBaseUrl() {
+function getBaseUrl() {
   if (import.meta.env.VITE_API_BASE_URL) {
     return import.meta.env.VITE_API_BASE_URL;
   }
   
   if (typeof window !== 'undefined') {
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    if (isProduction) {
+    const hostname = window.location.hostname;
+    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
       return window.location.origin + '/.netlify/functions';
     }
   }
@@ -16,187 +15,162 @@ function getApiBaseUrl() {
   return 'http://localhost:3000/api';
 }
 
-export class ApiClient {
-  constructor() {
-    this._baseUrl = null;
-  }
-
-  get baseUrl() {
-    if (!this._baseUrl) {
-      this._baseUrl = getApiBaseUrl();
+function getAuthToken() {
+  try {
+    const stored = localStorage.getItem('user');
+    if (stored) {
+      const user = JSON.parse(stored);
+      return user.id || null;
     }
-    return this._baseUrl;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+async function request(endpoint, options = {}) {
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}${endpoint}`;
+  const token = getAuthToken();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
   }
 
-  async _request(endpoint, options = {}) {
-    const url = `${this.baseUrl}${endpoint}`;
-    
-    // grab token from storage if it exists
-    const storedUser = localStorage.getItem('user');
-    let authToken = null;
-    if (storedUser) {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers,
+    });
+
+    let responseData;
+    const contentType = response.headers.get('content-type');
+
+    if (contentType && contentType.includes('application/json')) {
+      responseData = await response.json();
+    } else {
+      const text = await response.text();
       try {
-        const user = JSON.parse(storedUser);
-        authToken = user.id; // using user id as token for now
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
+        responseData = JSON.parse(text);
+      } catch {
+        responseData = { error: text || 'Invalid response' };
       }
     }
-    
-    const defaultOptions = {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+
+    if (!response.ok) {
+      return {
+        success: false,
+        message: responseData.error || responseData.message || `Request failed: ${response.status}`,
+        data: null,
+      };
+    }
+
+    return {
+      success: true,
+      data: responseData,
+      message: responseData.message || 'Success',
     };
-
-    // add auth header if we have a token
-    if (authToken) {
-      defaultOptions.headers['Authorization'] = `Bearer ${authToken}`;
-    }
-
-    try {
-      const response = await fetch(url, {
-        ...defaultOptions,
-        ...options,
-        headers: {
-          ...defaultOptions.headers,
-          ...options.headers,
-        },
-      });
-
-      // sometimes responses aren't json, gotta handle that
-      const contentType = response.headers.get('content-type');
-      let data;
-      
-      if (contentType && contentType.includes('application/json')) {
-        data = await response.json();
-      } else {
-        const text = await response.text();
-        try {
-          data = JSON.parse(text);
-        } catch {
-          return { 
-            success: false, 
-            message: text || `Server error: ${response.status} ${response.statusText}` 
-          };
-        }
-      }
-      
-      if (!response.ok) {
-        return { success: false, message: data.error || data.message || 'Request failed' };
-      }
-
-      // Handle login response which might have success flag already
-      if (data.success !== undefined && data.member) {
-        return { success: data.success, data };
-      }
-
-      return { success: true, data };
-    } catch (error) {
-      console.error('API request error:', error);
-      if (error.message === 'Failed to fetch') {
-        return { 
-          success: false, 
-          message: 'Cannot connect to server. Please make sure the backend server is running on port 3000.' 
-        };
-      }
-      return { success: false, message: error.message || 'Network error' };
-    }
+  } catch (error) {
+    console.error('API request failed:', error);
+    return {
+      success: false,
+      message: error.message || 'Network error',
+      data: null,
+    };
   }
+}
 
+export class ApiClient {
   async registerMember(memberData) {
-    return this._request(CONFIG.API.ENDPOINTS.MEMBERS, {
+    return request(CONFIG.API.ENDPOINTS.MEMBERS, {
       method: 'POST',
       body: JSON.stringify(memberData),
     });
   }
 
   async getMembers() {
-    return this._request(CONFIG.API.ENDPOINTS.MEMBERS, {
+    return request(CONFIG.API.ENDPOINTS.MEMBERS, {
       method: 'GET',
     });
   }
 
   async login(credentials) {
-    return this._request(CONFIG.API.ENDPOINTS.LOGIN, {
+    return request(CONFIG.API.ENDPOINTS.LOGIN, {
       method: 'POST',
       body: JSON.stringify(credentials),
     });
   }
 
   async sendContactMessage(contactData) {
-    return this._request(CONFIG.API.ENDPOINTS.CONTACT, {
+    return request(CONFIG.API.ENDPOINTS.CONTACT, {
       method: 'POST',
       body: JSON.stringify(contactData),
     });
   }
 
   async getAllMessages() {
-    return this._request(CONFIG.API.ENDPOINTS.MESSAGES, {
+    return request(CONFIG.API.ENDPOINTS.MESSAGES, {
       method: 'GET',
     });
   }
 
   async getProjects() {
-    return this._request(CONFIG.API.ENDPOINTS.PROJECTS, {
+    return request(CONFIG.API.ENDPOINTS.PROJECTS, {
       method: 'GET',
     });
   }
 
   async saveProject(projectData) {
-    return this._request(CONFIG.API.ENDPOINTS.PROJECTS, {
+    return request(CONFIG.API.ENDPOINTS.PROJECTS, {
       method: 'POST',
       body: JSON.stringify(projectData),
     });
   }
 
   async deleteProject(projectId) {
-    return this._request(`${CONFIG.API.ENDPOINTS.PROJECTS}/${projectId}`, {
+    return request(`${CONFIG.API.ENDPOINTS.PROJECTS}/${projectId}`, {
       method: 'DELETE',
     });
   }
 
   async uploadFile(file, category) {
-    const url = `${this.baseUrl}${CONFIG.API.ENDPOINTS.UPLOAD}`;
+    const baseUrl = getBaseUrl();
+    const url = `${baseUrl}${CONFIG.API.ENDPOINTS.UPLOAD}`;
+    const token = getAuthToken();
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('category', category);
 
-    const storedUser = localStorage.getItem('user');
-    let authToken = null;
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        authToken = user.id;
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-      }
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: authToken ? {
-          'Authorization': `Bearer ${authToken}`
-        } : {},
-        body: formData
+        headers,
+        body: formData,
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        return { success: false, message: error.error || 'Upload failed' };
+        const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+        return { success: false, message: error.error || 'Upload failed', data: null };
       }
 
       const data = await response.json();
-      return { success: true, data };
+      return { success: true, data, message: 'Upload successful' };
     } catch (error) {
       console.error('Upload error:', error);
-      return { success: false, message: error.message || 'Network error' };
+      return { success: false, message: error.message || 'Upload failed', data: null };
     }
   }
 }
 
-// Export a singleton instance for better performance
 export const apiClient = new ApiClient();
-
-
