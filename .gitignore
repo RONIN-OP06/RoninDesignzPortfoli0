@@ -10,6 +10,11 @@ dist-ssr/
 build/
 *.local
 
+# Backup files
+*.backup
+*.bak
+*~
+
 # Environment variables
 .env
 .env.local
@@ -71,6 +76,11 @@ coverage/
 *.temp
 .cache/
 .temp/
+
+# Old deployment configs
+vercel.json
+render.yaml
+.vercelignore
 
 # Media files (optional - uncomment if you don't want to track media)
 # MediaFiles/

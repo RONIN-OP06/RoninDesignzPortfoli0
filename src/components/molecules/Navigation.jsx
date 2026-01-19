@@ -23,8 +23,23 @@ export const Navigation = memo(function Navigation() {
     return navItems.filter(item => !(item.hideForAdmin && adminUser))
   }, [adminUser])
 
+  // Add admin messages to nav items for mobile bottom bar
+  const allNavItems = useMemo(() => {
+    const items = [...filteredNavItems]
+    if (isAuthenticated && adminUser) {
+      items.push({ path: "/admin/messages", label: "Messages", icon: Inbox })
+    }
+    if (!isAuthenticated) {
+      items.push({ path: "/login", label: "Login", icon: LogIn })
+      items.push({ path: "/signup", label: "Sign Up", icon: UserPlus })
+    }
+    return items
+  }, [filteredNavItems, isAuthenticated, adminUser])
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50">
+    <>
+    {/* Top Navigation - Desktop Only */}
+    <nav className="hidden md:block fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-b border-border/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-4">
           <Link 
@@ -222,5 +237,41 @@ export const Navigation = memo(function Navigation() {
         )}
       </div>
     </nav>
+
+    {/* Mobile Bottom Tab Bar */}
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border/50 safe-area-inset-bottom">
+      <div className="flex items-center justify-around px-2 py-2 max-w-screen overflow-x-auto">
+        {allNavItems.slice(0, 5).map((item) => {
+          const Icon = item.icon
+          const isActive = location.pathname === item.path
+          
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 min-w-[60px] min-h-[60px]",
+                isActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground active:text-foreground active:bg-accent"
+              )}
+            >
+              <Icon className="w-6 h-6" />
+              <span className="text-[10px] leading-tight text-center">{item.label}</span>
+            </Link>
+          )
+        })}
+        {isAuthenticated && user && (
+          <button
+            onClick={logout}
+            className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-300 min-w-[60px] min-h-[60px] text-muted-foreground active:text-foreground active:bg-accent"
+          >
+            <LogOut className="w-6 h-6" />
+            <span className="text-[10px] leading-tight text-center">Logout</span>
+          </button>
+        )}
+      </div>
+    </nav>
+    </>
   )
 })

@@ -79,6 +79,8 @@ const ProjectCard = memo(({ project, isAdmin, onSelect, onEdit }) => {
               alt={project.title}
               className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
               loading="lazy"
+              decoding="async"
+              fetchpriority="low"
             />
             <div className="absolute inset-0 flex items-center justify-center">
               <Play className="w-12 h-12 fill-white text-white opacity-80" />
@@ -90,6 +92,8 @@ const ProjectCard = memo(({ project, isAdmin, onSelect, onEdit }) => {
             alt={project.title}
             className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
             loading="lazy"
+            decoding="async"
+            fetchpriority="low"
             onError={(e) => {
               e.target.src = "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop"
             }}
@@ -230,7 +234,7 @@ export function PortfolioPage() {
   }, [])
 
   return (
-    <div className="relative z-10 min-h-screen pt-24">
+    <div className="relative z-10 min-h-screen pt-20 md:pt-24 pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         {/* header */}
         <section className="text-center mb-20">
@@ -252,7 +256,7 @@ export function PortfolioPage() {
               return (
                 <div key={program.category} className="space-y-6">
                   <Card className="bg-card/50 backdrop-blur-xl border-border/50">
-                    <CardHeader>
+                  <CardHeader>
                       <div className="flex items-center gap-4 mb-4">
                         <Icon className={`w-12 h-12 ${program.color}`} />
                         <div>
@@ -262,8 +266,8 @@ export function PortfolioPage() {
                           </CardDescription>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
+                  </CardHeader>
+                  <CardContent>
                       {/* projects */}
                       {categoryProjects.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">
@@ -300,8 +304,8 @@ export function PortfolioPage() {
                           ))}
                         </div>
                       )}
-                    </CardContent>
-                  </Card>
+                  </CardContent>
+                </Card>
                 </div>
               )
             })}
@@ -429,9 +433,9 @@ export function PortfolioPage() {
                                       setVideoError(null)
                                     }}
                                   >
-                                    <source src={currentMedia.url} type="video/mp4; codecs=avc1.42E01E,mp4a.40.2" />
-                                    <source src={currentMedia.url} type="video/mp4" />
-                                    <source src={currentMedia.url} type="video/webm" />
+                                    <source src={currentMedia.url} type="video/mp4; codecs=avc1.42E01E,mp4a.40.2" preload="metadata" />
+                                    <source src={currentMedia.url} type="video/mp4" preload="metadata" />
+                                    <source src={currentMedia.url} type="video/webm" preload="metadata" />
                                     Your browser does not support the video tag. Please try a different browser.
                                   </video>
                                 )}
@@ -454,8 +458,9 @@ export function PortfolioPage() {
                             src={currentMedia.url}
                             alt={selectedProject.title}
                             className="max-w-full max-h-[600px] md:max-h-[700px] lg:max-h-[800px] w-auto h-auto object-contain rounded-lg shadow-2xl"
-                            loading="lazy"
+                            loading="eager"
                             decoding="async"
+                            fetchpriority="high"
                             onError={(e) => {
                               e.target.src = "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop"
                             }}
