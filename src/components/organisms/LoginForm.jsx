@@ -40,13 +40,19 @@ export function LoginForm() {
     try {
       const response = await apiClient.login({ email, password })
 
-      if (response.success && response.data) {
-        const member = response.data.member || response.data
-        const isAdmin = response.data.isAdmin === true || member.isAdmin === true
+      if (response.success) {
+        const data = response.data || {}
+        const member = data.member || {}
+        const isAdmin = data.isAdmin === true || member.isAdmin === true
+
+        if (!member.id || !member.email) {
+          setError("Invalid response from server")
+          return
+        }
 
         const userData = {
           id: member.id,
-          name: member.name,
+          name: member.name || '',
           email: member.email,
           isAdmin: isAdmin
         }

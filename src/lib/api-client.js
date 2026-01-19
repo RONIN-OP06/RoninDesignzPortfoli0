@@ -86,6 +86,11 @@ export class ApiClient {
         return { success: false, message: data.error || data.message || 'Request failed' };
       }
 
+      // Handle login response which might have success flag already
+      if (data.success !== undefined && data.member) {
+        return { success: data.success, data };
+      }
+
       return { success: true, data };
     } catch (error) {
       console.error('API request error:', error);

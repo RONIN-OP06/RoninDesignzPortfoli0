@@ -109,7 +109,6 @@ export async function handler(event, context) {
       statusCode: 200,
       headers: corsHeaders,
       body: JSON.stringify({
-        success: true,
         message: 'Login successful',
         member: {
           id: member.id,
