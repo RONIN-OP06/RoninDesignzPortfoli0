@@ -63,7 +63,6 @@ export function SiteSettingsPage() {
       // Save to localStorage (in production, save to backend)
       localStorage.setItem('siteSettings', JSON.stringify(settings))
       
-      // TODO: Save to backend API
       // await apiClient.updateSettings(settings)
       
       setSaved(true)
