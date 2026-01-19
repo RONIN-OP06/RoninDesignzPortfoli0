@@ -1,79 +1,71 @@
-import { initializeMessagesFile, initializeMembersFile, authenticateUser, getMessagesFile, getMembersFile } from './_shared/utils.js';
-import fs from 'fs/promises';
+import { readData, writeData, generateId } from './utils/db.js';
+import { validateEmail, validateName, sanitizeInput } from './utils/validation.js';
+import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
-export async function handler(event, context) {
+export const handler = async (event, context) => {
+  if (event.httpMethod === 'OPTIONS') {
+    return handleOptions();
+  }
+
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Method not allowed' })
-    };
-  }
-
-  const authResult = await authenticateUser(event);
-  if (authResult.error) {
-    return {
-      statusCode: authResult.statusCode,
-      body: JSON.stringify({ error: authResult.error })
-    };
-  }
-
-  const { user } = authResult;
-  const { name, email, subject, message } = JSON.parse(event.body || '{}');
-
-  if (!name || !email || !subject || !message) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'All fields are required' })
-    };
+    return handleMethodNotAllowed(['POST']);
   }
 
   try {
-    await initializeMembersFile();
-    const membersData = await fs.readFile(getMembersFile(), 'utf8');
-    const members = JSON.parse(membersData);
-    const member = members.find(m => m.id === user.id);
-
-    if (!member) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ error: 'User account not found' })
-      };
-    }
-
-    await initializeMessagesFile();
-    let messages = [];
+    let body;
     try {
-      const messagesData = await fs.readFile(getMessagesFile(), 'utf8');
-      if (messagesData.trim()) {
-        messages = JSON.parse(messagesData);
-      }
-    } catch {
-      messages = [];
+      body = event.body ? JSON.parse(event.body) : {};
+    } catch (parseError) {
+      return errorResponse('Invalid JSON in request body', 400);
     }
+
+    const { name, email, subject, message } = body;
+
+    // Validate inputs
+    const nameValidation = validateName(name);
+    if (!nameValidation.valid) {
+      return errorResponse(nameValidation.message, 400);
+    }
+
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      return errorResponse(emailValidation.message, 400);
+    }
+
+    if (!message || typeof message !== 'string' || message.trim().length < 5) {
+      return errorResponse('Message must be at least 5 characters', 400);
+    }
+
+    // Sanitize inputs
+    const sanitizedName = sanitizeInput(name);
+    const sanitizedEmail = sanitizeInput(email).toLowerCase();
+    const sanitizedSubject = subject ? sanitizeInput(subject) : 'No subject';
+    const sanitizedMessage = sanitizeInput(message);
+
+    const messages = readData('messages.json', []);
 
     const newMessage = {
-      id: Date.now().toString(),
-      userId: user.id,
-      userName: name,
-      userEmail: email,
-      subject,
-      message,
+      id: generateId(),
+      name: sanitizedName,
+      email: sanitizedEmail,
+      subject: sanitizedSubject,
+      message: sanitizedMessage,
+      read: false,
       createdAt: new Date().toISOString(),
-      read: false
     };
 
     messages.push(newMessage);
-    await fs.writeFile(getMessagesFile(), JSON.stringify(messages, null, 2));
+    const writeSuccess = writeData('messages.json', messages);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Message sent successfully! I\'ll get back to you soon.', messageId: newMessage.id })
-    };
+    if (!writeSuccess) {
+      return errorResponse('Failed to save message', 500);
+    }
+
+    console.log(`[CONTACT] New message from: ${sanitizedEmail}`);
+
+    return successResponse(newMessage, 'Message sent successfully', 201);
   } catch (error) {
-    console.error('Contact error:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: 'Failed to send message. Please try again later.', details: error.message })
-    };
+    console.error('[CONTACT ERROR]', error);
+    return errorResponse('Internal server error', 500, error);
   }
-}
+};

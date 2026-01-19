@@ -4,7 +4,7 @@ import { Heart, Target, Users, Award } from "lucide-react"
 
 export function AboutPage() {
   return (
-    <div className="relative z-10 min-h-screen pt-24">
+    <div className="relative z-10 min-h-screen pt-20 md:pt-24 pb-20 md:pb-0">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         {/* Hero Section */}
         <section className="text-center mb-20">

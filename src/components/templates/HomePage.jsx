@@ -1,4 +1,4 @@
-import { useMemo } from "react"
+import { useMemo, memo } from "react"
 import { ParallaxBackground } from "@/components/organisms/ParallaxBackground"
 import { GradientText } from "@/components/atoms/GradientText"
 import { Button } from "@/components/ui/button"
@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { CONFIG } from "@/lib/config"
 import { AdminMessagesSection } from "@/components/organisms/AdminMessagesSection"
 
-export function HomePage() {
+export const HomePage = memo(function HomePage() {
   const { user, isAuthenticated } = useAuth()
   const isAdmin = useMemo(() => 
     isAuthenticated && user && CONFIG.ADMIN.EMAILS.includes(user.email?.toLowerCase()),
@@ -18,7 +18,7 @@ export function HomePage() {
   // if admin, show messages instead of normal home
   if (isAdmin) {
     return (
-      <div className="relative z-10 min-h-screen pt-24">
+      <div className="relative z-10 min-h-screen pt-20 md:pt-24 pb-20 md:pb-0">
         <AdminMessagesSection />
       </div>
     )
@@ -27,7 +27,7 @@ export function HomePage() {
   return (
     <>
       <ParallaxBackground />
-      <div className="relative z-10 min-h-screen pt-24">
+      <div className="relative z-[2] min-h-screen pt-20 md:pt-24 pb-20 md:pb-0">
         {/* Hero Section */}
         <section className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-16 sm:py-20">
           <div className="max-w-7xl mx-auto text-center">
@@ -102,6 +102,6 @@ export function HomePage() {
       </div>
     </>
   )
-}
+})
 
 

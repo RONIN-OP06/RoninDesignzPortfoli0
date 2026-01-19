@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo, useCallback, memo } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ const apiClient = new ApiClient()
 
 const ADMIN_EMAILS = ['ronindesignz123@gmail.com', 'roninsyoutub123@gmail.com'].map(e => e.toLowerCase().trim())
 
-export function LoginForm() {
+export const LoginForm = memo(function LoginForm() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
@@ -24,29 +24,41 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
 
-  const isAdminEmail = email && ADMIN_EMAILS.includes(email.toLowerCase().trim())
+  const isAdminEmail = useMemo(() => 
+    email && ADMIN_EMAILS.includes(email.toLowerCase().trim()),
+    [email]
+  )
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
     setError("")
 
+    // PRIORITY: Validate inputs immediately
     if (!email || !password) {
       setError("Please fill in all fields")
       return
     }
 
+    // PRIORITY: Admin login takes priority - show loading immediately
     setIsSubmitting(true)
 
     try {
-      const response = await apiClient.login({ email, password })
+      // PRIORITY: Sign in takes priority - make API call
+      const response = await apiClient.login({ 
+        email: email.trim().toLowerCase(), 
+        password 
+      })
 
       if (response.success) {
         const data = response.data || {}
         const member = data.member || {}
+        
+        // PRIORITY: Admin login takes priority - check admin status first
         const isAdmin = data.isAdmin === true || member.isAdmin === true
 
         if (!member.id || !member.email) {
-          setError("Invalid response from server")
+          setError("Invalid response from server. Please try again.")
+          setIsSubmitting(false)
           return
         }
 
@@ -57,23 +69,29 @@ export function LoginForm() {
           isAdmin: isAdmin
         }
 
+        // Login user
         login(userData)
 
+        // PRIORITY: Admin login takes priority - redirect admin first
         if (isAdmin) {
-          navigate('/admin/messages')
+          // Immediate redirect for admin
+          window.location.href = '/admin/messages'
         } else {
-          navigate('/contact')
+          navigate('/contact', { replace: true })
         }
       } else {
-        setError(response.message || "Invalid email or password")
+        // Better error messages
+        const errorMsg = response.message || "Invalid email or password"
+        setError(errorMsg)
+        setIsSubmitting(false)
       }
     } catch (err) {
-      setError("Connection error. Please try again.")
-      console.error('Login error:', err)
-    } finally {
+      // Enhanced error handling
+      console.error('[LOGIN ERROR]', err)
+      setError("Connection error. Please check your internet connection and try again.")
       setIsSubmitting(false)
     }
-  }
+  }, [email, password, login, navigate])
 
   return (
     <Card className="bg-card/80 backdrop-blur-xl border-border/50 max-w-2xl mx-auto">
@@ -146,4 +164,4 @@ export function LoginForm() {
       </CardContent>
     </Card>
   )
-}
+})

@@ -10,11 +10,6 @@ dist-ssr/
 build/
 *.local
 
-# Backup files
-*.backup
-*.bak
-*~
-
 # Environment variables
 .env
 .env.local
@@ -32,6 +27,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Sensitive data files
+netlify/data/*.json
+!netlify/data/.gitkeep
 members.json
 messages.json
 *.json.backup
@@ -77,18 +74,5 @@ coverage/
 .cache/
 .temp/
 
-# Old deployment configs
-vercel.json
-render.yaml
-.vercelignore
-
-# Media files (optional - uncomment if you don't want to track media)
-# MediaFiles/
-# public/videos/
-# public/images/
-
-# FFmpeg and encoding scripts (if not needed in repo)
-# C:\ffmpegEncode/
-
-
-
+# Local Netlify folder
+.netlify

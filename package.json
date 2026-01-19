@@ -5,7 +5,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
+    "dev:netlify": "netlify dev",
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",

@@ -1,8 +1,9 @@
+import { memo } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ValidationMessage } from "@/components/atoms/ValidationMessage"
 
-export function FormField({
+export const FormField = memo(function FormField({
   id,
   label,
   type = "text",
@@ -38,6 +39,6 @@ export function FormField({
       <ValidationMessage message={validationMessage} isValid={isValid} />
     </div>
   )
-}
+})
 
 

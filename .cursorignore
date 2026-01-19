@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+*.local
+
+# Media files (large files that slow indexing)
+MediaFiles/
+public/images/
+public/videos/
+dist/images/
+dist/videos/
+dist/ui-ux-mockups/
+
+# Large data files
+*.json
+!package.json
+!package-lock.json
+!tsconfig.json
+!jsconfig.json
+!tailwind.config.js
+!vite.config.js
+!postcss.config.js
+
+# Documentation (optional - uncomment if not needed)
+# *.md
+# !README.md
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Server files (if not actively editing)
+server.js
+render.yaml
+vercel.json
+# netlify/ - Allow Netlify functions
+# netlify.toml - Allow Netlify config
+
+# Scripts (if not actively editing)
+*.ps1
+reencode-videos.ps1
+
+# CV and personal files
+*.pdf
+*CV*
+Ronin*
+
+# Old HTML files
+*.html
+!index.html
+
+# Context and data files
+# src/contexts/ - Allow AuthContext
+src/data/

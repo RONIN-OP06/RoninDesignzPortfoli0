@@ -4,13 +4,12 @@ function getApiBaseUrl() {
   }
   
   if (typeof window !== 'undefined') {
-    const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-    if (isProduction) {
-      return window.location.origin + '/.netlify/functions';
-    }
+    // Always use Netlify Functions
+    return window.location.origin + '/.netlify/functions';
   }
   
-  return 'http://localhost:3000/api';
+  // Fallback
+  return '/.netlify/functions';
 }
 
 export const CONFIG = {

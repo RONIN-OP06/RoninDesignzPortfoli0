@@ -32,6 +32,10 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     setUser(null)
     localStorage.removeItem('user')
+    // Redirect to home if on admin pages
+    if (window.location.pathname.startsWith('/admin')) {
+      window.location.href = '/'
+    }
   }, [])
 
   const isAuthenticated = useMemo(() => !!user, [user])

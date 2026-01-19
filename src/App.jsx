@@ -37,7 +37,7 @@ function AppContent() {
           <ThreeJSScene />
         </Suspense>
       )}
-      <div className="min-h-screen bg-background antialiased">
+      <div className={`min-h-screen antialiased ${location.pathname === '/' ? '' : 'bg-background'}`}>
         <Navigation />
         <Suspense fallback={<PageLoader />}>
           <Routes>

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback, memo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -15,7 +15,7 @@ import { ValidationMessage } from "@/components/atoms/ValidationMessage"
 const validator = new FormValidator()
 const apiClient = new ApiClient()
 
-export function SignUpForm() {
+export const SignUpForm = memo(function SignUpForm() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [formData, setFormData] = useState({
@@ -228,6 +228,6 @@ export function SignUpForm() {
       </CardContent>
     </Card>
   )
-}
+})
 
 

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
-import { memo, useMemo, useState } from "react"
+import { memo, useMemo, useState, useCallback } from "react"
 import { cn } from "@/lib/utils"
 import { Home, User, Briefcase, Mail, UserPlus, LogOut, LogIn, Inbox, Menu, X } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
@@ -19,6 +19,14 @@ export const Navigation = memo(function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const adminUser = useMemo(() => isAdminUser(user), [user])
+  
+  const toggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev)
+  }, [])
+  
+  const closeMobileMenu = useCallback(() => {
+    setMobileMenuOpen(false)
+  }, [])
   const filteredNavItems = useMemo(() => {
     return navItems.filter(item => !(item.hideForAdmin && adminUser))
   }, [adminUser])
@@ -45,35 +53,35 @@ export const Navigation = memo(function Navigation() {
           <Link 
             to="/" 
             className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-red-500 via-purple-600 to-blue-500 bg-clip-text text-transparent shrink-0"
-            onClick={() => setMobileMenuOpen(false)}
+            onClick={closeMobileMenu}
           >
             RoninDezigns
           </Link>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-2">
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
               {filteredNavItems.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.path
-                
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className={cn(
+              const Icon = item.icon
+              const isActive = location.pathname === item.path
+              
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={cn(
                       "flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 min-h-[44px]",
-                      isActive
-                        ? "bg-primary text-primary-foreground shadow-lg"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    )}
-                  >
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-lg"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )}
+                >
                     <Icon className="w-5 h-5" />
                     <span>{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
+                </Link>
+              )
+            })}
+          </div>
             
             {isAuthenticated && user ? (
               <div className="flex items-center gap-2 ml-2 pl-2 border-l border-border/50">
@@ -136,7 +144,7 @@ export const Navigation = memo(function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onClick={toggleMobileMenu}
             className="md:hidden p-2 rounded-lg hover:bg-accent transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
             aria-label="Toggle menu"
           >
@@ -156,7 +164,7 @@ export const Navigation = memo(function Navigation() {
                   <Link
                     key={item.path}
                     to={item.path}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                     className={cn(
                       "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 min-h-[48px]",
                       isActive
@@ -175,7 +183,7 @@ export const Navigation = memo(function Navigation() {
                   {adminUser && (
                     <Link
                       to="/admin/messages"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={closeMobileMenu}
                       className={cn(
                         "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 min-h-[48px]",
                         location.pathname === "/admin/messages"
@@ -194,7 +202,7 @@ export const Navigation = memo(function Navigation() {
                     variant="ghost"
                     onClick={() => {
                       logout()
-                      setMobileMenuOpen(false)
+                      closeMobileMenu()
                     }}
                     className="flex items-center gap-3 px-4 py-3 min-h-[48px] justify-start"
                   >
@@ -206,7 +214,7 @@ export const Navigation = memo(function Navigation() {
                 <>
                   <Link
                     to="/login"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                     className={cn(
                       "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 min-h-[48px]",
                       location.pathname === "/login"
@@ -219,7 +227,7 @@ export const Navigation = memo(function Navigation() {
                   </Link>
                   <Link
                     to="/signup"
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeMobileMenu}
                     className={cn(
                       "flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all duration-300 min-h-[48px]",
                       location.pathname === "/signup"
@@ -232,7 +240,7 @@ export const Navigation = memo(function Navigation() {
                   </Link>
                 </>
               )}
-            </div>
+        </div>
           </div>
         )}
       </div>

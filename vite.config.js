@@ -21,9 +21,20 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000,
+    minify: 'esbuild', // Faster than terser
   },
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom'],
+    include: ['react', 'react-dom', 'react-router-dom', 'three'],
+    exclude: [],
+  },
+  esbuild: {
+    // Faster builds
+    legalComments: 'none',
+    treeShaking: true,
+  },
+  server: {
+    // Faster HMR
+    hmr: true,
   },
   base: '/',
 })

@@ -258,40 +258,40 @@ app.post(
   ],
   validateRequest,
   async (req, res) => {
-    try {
-      await initializeMembersFile();
-      const data = await fs.readFile(MEMBERS_FILE, 'utf8');
-      const members = JSON.parse(data);
-
-      const { name, email, password, phone } = req.body;
-
+  try {
+    await initializeMembersFile();
+    const data = await fs.readFile(MEMBERS_FILE, 'utf8');
+    const members = JSON.parse(data);
+    
+    const { name, email, password, phone } = req.body;
+    
       // check if email exists
-      if (members.some(m => m.email === email)) {
-        return res.status(400).json({ error: 'Email already registered' });
-      }
+    if (members.some(m => m.email === email)) {
+      return res.status(400).json({ error: 'Email already registered' });
+    }
 
       // hash password
       const hashedPassword = await bcrypt.hash(password, 10);
-
-      const newMember = {
-        id: Date.now().toString(),
-        name,
-        email,
+    
+    const newMember = {
+      id: Date.now().toString(),
+      name,
+      email,
         password: hashedPassword,
-        phone,
-        createdAt: new Date().toISOString()
-      };
-
-      members.push(newMember);
-      await fs.writeFile(MEMBERS_FILE, JSON.stringify(members, null, 2));
-
+      phone,
+      createdAt: new Date().toISOString()
+    };
+    
+    members.push(newMember);
+    await fs.writeFile(MEMBERS_FILE, JSON.stringify(members, null, 2));
+    
       // don't send password back
       const { password: _, ...memberWithoutPassword } = newMember;
       res.status(201).json({ message: 'Member registered successfully', member: memberWithoutPassword });
-    } catch (error) {
-      console.error('Error creating member:', error);
-      res.status(500).json({ error: 'Failed to create member' });
-    }
+  } catch (error) {
+    console.error('Error creating member:', error);
+    res.status(500).json({ error: 'Failed to create member' });
+  }
   }
 );
 
@@ -302,12 +302,12 @@ app.post(
   [emailChain, body('password').isString().isLength({ min: 1, max: 100 })],
   validateRequest,
   async (req, res) => {
-    try {
-      await initializeMembersFile();
-      const data = await fs.readFile(MEMBERS_FILE, 'utf8');
-      const members = JSON.parse(data);
-
-      const { email, password } = req.body;
+  try {
+    await initializeMembersFile();
+    const data = await fs.readFile(MEMBERS_FILE, 'utf8');
+    const members = JSON.parse(data);
+    
+    const { email, password } = req.body;
       const member = members.find(m => m.email === email);
 
       if (!member) {
@@ -330,14 +330,14 @@ app.post(
       }
 
       if (passwordMatch) {
-        res.json({ message: 'Login successful', member: { id: member.id, name: member.name, email: member.email } });
-      } else {
-        res.status(401).json({ error: 'Invalid email or password' });
-      }
-    } catch (error) {
-      console.error('Error during login:', error);
-      res.status(500).json({ error: 'Failed to process login' });
+      res.json({ message: 'Login successful', member: { id: member.id, name: member.name, email: member.email } });
+    } else {
+      res.status(401).json({ error: 'Invalid email or password' });
     }
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Failed to process login' });
+  }
   }
 );
 

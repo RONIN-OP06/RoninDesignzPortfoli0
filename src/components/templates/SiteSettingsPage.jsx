@@ -63,6 +63,7 @@ export function SiteSettingsPage() {
       // Save to localStorage (in production, save to backend)
       localStorage.setItem('siteSettings', JSON.stringify(settings))
       
+      // TODO: Save to backend API
       // await apiClient.updateSettings(settings)
       
       setSaved(true)
@@ -77,7 +78,7 @@ export function SiteSettingsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="relative z-10 min-h-screen pt-24">
+      <div className="relative z-10 min-h-screen pt-20 md:pt-24 pb-20 md:pb-0">
         <div className="max-w-2xl mx-auto px-6 py-12">
           <Card className="bg-card/50 backdrop-blur-xl border-border/50">
             <CardContent className="py-12 text-center">

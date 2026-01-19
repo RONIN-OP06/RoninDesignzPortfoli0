@@ -6,13 +6,24 @@ function getBaseUrl() {
   }
   
   if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return window.location.origin + '/.netlify/functions';
+    // Always use Netlify Functions - works in both dev and production
+    // If running netlify dev, it will be http://localhost:8888/.netlify/functions
+    // If running vite dev, it will be http://localhost:5173/.netlify/functions (needs netlify dev)
+    // In production, it will be the actual domain/.netlify/functions
+    const origin = window.location.origin;
+    
+    // Check if we're in Netlify dev mode (port 8888) or regular dev (port 5173)
+    if (origin.includes('localhost:8888') || origin.includes('localhost:5173') || origin.includes('localhost')) {
+      // For local development, use Netlify Functions if available
+      // Otherwise fall back to trying the current origin
+      return origin + '/.netlify/functions';
     }
+    
+    return origin + '/.netlify/functions';
   }
   
-  return 'http://localhost:3000/api';
+  // Fallback - should not reach here in browser
+  return '/.netlify/functions';
 }
 
 function getAuthToken() {
@@ -43,10 +54,17 @@ async function request(endpoint, options = {}) {
   }
 
   try {
+    // PRIORITY: Sign in takes priority - add timeout for faster failure
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
     const response = await fetch(url, {
       ...options,
       headers,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
 
     let responseData;
     const contentType = response.headers.get('content-type');
@@ -65,7 +83,7 @@ async function request(endpoint, options = {}) {
     if (!response.ok) {
       return {
         success: false,
-        message: responseData.error || responseData.message || `Request failed: ${response.status}`,
+        message: responseData.message || responseData.error || `Request failed: ${response.status}`,
         data: null,
       };
     }
@@ -76,10 +94,17 @@ async function request(endpoint, options = {}) {
       message: responseData.message || 'Success',
     };
   } catch (error) {
-    console.error('API request failed:', error);
+    if (error.name === 'AbortError') {
+      return {
+        success: false,
+        message: 'Request timeout. Please try again.',
+        data: null,
+      };
+    }
+    console.error('[API ERROR]', error);
     return {
       success: false,
-      message: error.message || 'Network error',
+      message: error.message || 'Network error. Please check your connection.',
       data: null,
     };
   }

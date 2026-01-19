@@ -1,6 +1,7 @@
+import { memo } from "react"
 import { cn } from "@/lib/utils"
 
-export function GradientText({ children, className, ...props }) {
+export const GradientText = memo(function GradientText({ children, className, ...props }) {
   return (
     <span
       className={cn(
@@ -12,6 +13,6 @@ export function GradientText({ children, className, ...props }) {
       {children}
     </span>
   )
-}
+})
 
 

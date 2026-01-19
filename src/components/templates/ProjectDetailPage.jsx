@@ -12,7 +12,7 @@ export function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div className="relative z-10 min-h-screen pt-24 flex items-center justify-center">
+      <div className="relative z-10 min-h-screen pt-20 md:pt-24 pb-20 md:pb-0 flex items-center justify-center">
         <Card className="bg-card/50 backdrop-blur-xl border-border/50 max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle className="text-2xl">Project Not Found</CardTitle>
@@ -32,7 +32,7 @@ export function ProjectDetailPage() {
   }
 
   return (
-    <div className="relative z-10 min-h-screen pt-24">
+    <div className="relative z-10 min-h-screen pt-20 md:pt-24 pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto px-6 py-12">
         {/* Back Button */}
         <div className="mb-8">
