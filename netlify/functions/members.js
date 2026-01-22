@@ -1,4 +1,4 @@
-import { readData, writeData, generateId } from './utils/db.js';
+import { getMembers, getMemberByEmail, createMember, initializeDatabase } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 
 export const handler = async (event, context) => {
@@ -19,9 +19,17 @@ export const handler = async (event, context) => {
     };
   }
 
+  // Initialize database (idempotent)
+  try {
+    await initializeDatabase();
+  } catch (initError) {
+    console.error('[MEMBERS] Database initialization error:', initError);
+    // Continue anyway - might already be initialized
+  }
+
   try {
     if (event.httpMethod === 'GET') {
-      const members = readData('members.json', []);
+      const members = await getMembers();
       
       // Remove passwords from response
       const safeMembers = members.map(({ password, ...member }) => member);
@@ -52,37 +60,45 @@ export const handler = async (event, context) => {
         };
       }
 
-      const members = readData('members.json', []);
-
-      // Check if email already exists
-      if (members.some(m => m.email.toLowerCase() === email.toLowerCase())) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            message: 'Email already registered',
-          }),
-        };
-      }
-
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 10);
 
       // Create new member
-      const newMember = {
-        id: generateId(),
+      const memberData = {
         name,
         email: email.toLowerCase(),
         password: hashedPassword,
         phone: phone || '',
-        createdAt: new Date().toISOString(),
       };
 
-      members.push(newMember);
-      const writeSuccess = writeData('members.json', members);
+      try {
+        const newMember = await createMember(memberData);
+        
+        // Remove password from response
+        const { password: _, ...safeMember } = newMember;
 
-      if (!writeSuccess) {
+        return {
+          statusCode: 201,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            message: 'Member registered successfully',
+            member: safeMember,
+          }),
+        };
+      } catch (dbError) {
+        if (dbError.message && dbError.message.includes('already registered')) {
+          return {
+            statusCode: 400,
+            headers,
+            body: JSON.stringify({
+              success: false,
+              message: 'Email already registered',
+            }),
+          };
+        }
+        
+        console.error('Database error creating member:', dbError);
         return {
           statusCode: 500,
           headers,
@@ -92,19 +108,6 @@ export const handler = async (event, context) => {
           }),
         };
       }
-
-      // Remove password from response
-      const { password: _, ...safeMember } = newMember;
-
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          message: 'Member registered successfully',
-          member: safeMember,
-        }),
-      };
     }
 
     return {

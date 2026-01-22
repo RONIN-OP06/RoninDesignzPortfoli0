@@ -1,4 +1,4 @@
-import { readData, writeData } from './utils/db.js';
+import { getMemberByEmail, updateMember, initializeDatabase } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 import { validateEmail, validatePassword, sanitizeInput } from './utils/validation.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
@@ -17,6 +17,14 @@ export const handler = async (event, context) => {
   // Only allow POST
   if (event.httpMethod !== 'POST') {
     return handleMethodNotAllowed(['POST']);
+  }
+
+  // Initialize database (idempotent)
+  try {
+    await initializeDatabase();
+  } catch (initError) {
+    console.error('[LOGIN] Database initialization error:', initError);
+    // Continue anyway - might already be initialized
   }
 
   try {
@@ -47,11 +55,8 @@ export const handler = async (event, context) => {
     // PRIORITY: Check if admin email first (admin login takes priority)
     const isAdminEmail = ADMIN_EMAILS.includes(sanitizedEmail);
 
-    // Load members
-    const members = readData('members.json', []);
-    
-    // Find member by email
-    const member = members.find(m => m.email.toLowerCase() === sanitizedEmail);
+    // Get member from database
+    const member = await getMemberByEmail(sanitizedEmail);
 
     if (!member) {
       // Don't reveal if email exists for security
@@ -75,12 +80,12 @@ export const handler = async (event, context) => {
         if (passwordMatch) {
           // Upgrade plaintext password to hashed
           const hashedPassword = await bcrypt.hash(password, 10);
-          const allMembers = readData('members.json', []);
-          const memberIndex = allMembers.findIndex(m => m.id === member.id);
-          if (memberIndex >= 0) {
-            allMembers[memberIndex].password = hashedPassword;
-            writeData('members.json', allMembers);
+          try {
+            await updateMember(member.id, { password: hashedPassword });
             console.log(`[PASSWORD UPGRADE] Upgraded plaintext password for ${member.email}`);
+          } catch (updateError) {
+            console.error('Error upgrading password:', updateError);
+            // Continue with login even if upgrade fails
           }
         }
       }

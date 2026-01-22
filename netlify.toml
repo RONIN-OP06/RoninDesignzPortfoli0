@@ -17,6 +17,9 @@
   NODE_VERSION = "18"
   # Admin emails - PRIORITY: Admin login takes priority
   ADMIN_EMAILS = "ronindesignz123@gmail.com,roninsyoutub123@gmail.com"
+  # Fauna DB Secret Key - Set this in Netlify Dashboard → Site settings → Environment variables
+  # Get your key from: https://dashboard.fauna.com/
+  # FAUNA_SECRET_KEY = "your-secret-key-here"
 
 # Function configuration - optimized for production
 [functions]

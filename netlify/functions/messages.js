@@ -1,4 +1,4 @@
-import { readData, writeData } from './utils/db.js';
+import { getMessages, getMessageById, updateMessage } from './utils/database.js';
 
 const ADMIN_EMAILS = ['ronindesignz123@gmail.com', 'roninsyoutub123@gmail.com'].map(e => e.toLowerCase().trim());
 
@@ -47,7 +47,7 @@ export const handler = async (event, context) => {
     }
 
     if (event.httpMethod === 'GET') {
-      const messages = readData('messages.json', []);
+      const messages = await getMessages();
       
       // Sort by createdAt, newest first
       const sortedMessages = messages.sort((a, b) => 
@@ -78,35 +78,47 @@ export const handler = async (event, context) => {
         };
       }
 
-      const messages = readData('messages.json', []);
-      const messageIndex = messages.findIndex(m => m.id === id);
+      try {
+        const existingMessage = await getMessageById(id);
+        
+        if (!existingMessage) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({
+              success: false,
+              message: 'Message not found',
+            }),
+          };
+        }
 
-      if (messageIndex === -1) {
+        const updates = {};
+        if (read !== undefined) {
+          updates.read = read;
+        }
+
+        const updatedMessage = await updateMessage(id, updates);
+
         return {
-          statusCode: 404,
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            message: 'Message updated',
+            data: updatedMessage,
+          }),
+        };
+      } catch (dbError) {
+        console.error('Error updating message:', dbError);
+        return {
+          statusCode: 500,
           headers,
           body: JSON.stringify({
             success: false,
-            message: 'Message not found',
+            message: 'Failed to update message',
           }),
         };
       }
-
-      if (read !== undefined) {
-        messages[messageIndex].read = read;
-      }
-
-      writeData('messages.json', messages);
-
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          message: 'Message updated',
-          data: messages[messageIndex],
-        }),
-      };
     }
 
     return {

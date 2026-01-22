@@ -1,4 +1,4 @@
-import { readData, writeData, generateId } from './utils/db.js';
+import { createMessage } from './utils/database.js';
 import { validateEmail, validateName, sanitizeInput } from './utils/validation.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
@@ -42,28 +42,21 @@ export const handler = async (event, context) => {
     const sanitizedSubject = subject ? sanitizeInput(subject) : 'No subject';
     const sanitizedMessage = sanitizeInput(message);
 
-    const messages = readData('messages.json', []);
+    try {
+      const newMessage = await createMessage({
+        name: sanitizedName,
+        email: sanitizedEmail,
+        subject: sanitizedSubject,
+        message: sanitizedMessage,
+      });
 
-    const newMessage = {
-      id: generateId(),
-      name: sanitizedName,
-      email: sanitizedEmail,
-      subject: sanitizedSubject,
-      message: sanitizedMessage,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
+      console.log(`[CONTACT] New message from: ${sanitizedEmail}`);
 
-    messages.push(newMessage);
-    const writeSuccess = writeData('messages.json', messages);
-
-    if (!writeSuccess) {
+      return successResponse(newMessage, 'Message sent successfully', 201);
+    } catch (dbError) {
+      console.error('[CONTACT] Database error:', dbError);
       return errorResponse('Failed to save message', 500);
     }
-
-    console.log(`[CONTACT] New message from: ${sanitizedEmail}`);
-
-    return successResponse(newMessage, 'Message sent successfully', 201);
   } catch (error) {
     console.error('[CONTACT ERROR]', error);
     return errorResponse('Internal server error', 500, error);

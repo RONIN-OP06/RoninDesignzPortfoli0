@@ -1,4 +1,4 @@
-import { readData, writeData, generateId } from './utils/db.js';
+import { getProjects, createProject, deleteProject } from './utils/database.js';
 
 function isAdmin(authHeader) {
   if (!authHeader) return false;
@@ -27,7 +27,7 @@ export const handler = async (event, context) => {
 
   try {
     if (event.httpMethod === 'GET') {
-      const projects = readData('projects.json', []);
+      const projects = await getProjects();
       
       return {
         statusCode: 200,
@@ -66,27 +66,29 @@ export const handler = async (event, context) => {
         };
       }
 
-      const projects = readData('projects.json', []);
+      try {
+        const newProject = await createProject(projectData);
 
-      const newProject = {
-        id: generateId(),
-        ...projectData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      projects.push(newProject);
-      writeData('projects.json', projects);
-
-      return {
-        statusCode: 201,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          message: 'Project saved successfully',
-          project: newProject,
-        }),
-      };
+        return {
+          statusCode: 201,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            message: 'Project saved successfully',
+            project: newProject,
+          }),
+        };
+      } catch (dbError) {
+        console.error('Error creating project:', dbError);
+        return {
+          statusCode: 500,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            message: 'Failed to save project',
+          }),
+        };
+      }
     }
 
     if (event.httpMethod === 'DELETE') {
@@ -103,30 +105,39 @@ export const handler = async (event, context) => {
         };
       }
 
-      const projects = readData('projects.json', []);
-      const filteredProjects = projects.filter(p => p.id !== projectId);
+      try {
+        await deleteProject(projectId);
 
-      if (projects.length === filteredProjects.length) {
         return {
-          statusCode: 404,
+          statusCode: 200,
+          headers,
+          body: JSON.stringify({
+            success: true,
+            message: 'Project deleted successfully',
+          }),
+        };
+      } catch (dbError) {
+        if (dbError.message && dbError.message.includes('not found')) {
+          return {
+            statusCode: 404,
+            headers,
+            body: JSON.stringify({
+              success: false,
+              message: 'Project not found',
+            }),
+          };
+        }
+        
+        console.error('Error deleting project:', dbError);
+        return {
+          statusCode: 500,
           headers,
           body: JSON.stringify({
             success: false,
-            message: 'Project not found',
+            message: 'Failed to delete project',
           }),
         };
       }
-
-      writeData('projects.json', filteredProjects);
-
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          message: 'Project deleted successfully',
-        }),
-      };
     }
 
     return {
