@@ -19,13 +19,10 @@ export const handler = async (event, context) => {
     };
   }
 
-  // Initialize database (idempotent)
-  try {
-    await initializeDatabase();
-  } catch (initError) {
-    console.error('[MEMBERS] Database initialization error:', initError);
-    // Continue anyway - might already be initialized
-  }
+  // Initialize database (non-blocking, cached)
+  initializeDatabase().catch(err => {
+    console.error('[MEMBERS] Database initialization error (non-blocking):', err.message);
+  });
 
   try {
     if (event.httpMethod === 'GET') {

@@ -19,13 +19,11 @@ export const handler = async (event, context) => {
     return handleMethodNotAllowed(['POST']);
   }
 
-  // Initialize database (idempotent)
-  try {
-    await initializeDatabase();
-  } catch (initError) {
-    console.error('[LOGIN] Database initialization error:', initError);
-    // Continue anyway - might already be initialized
-  }
+  // Initialize database (non-blocking, cached - won't block if already initialized)
+  // Don't wait for it - let it run in background, operations will work once ready
+  initializeDatabase().catch(err => {
+    console.error('[LOGIN] Database initialization error (non-blocking):', err.message);
+  });
 
   try {
     // Parse and validate request body

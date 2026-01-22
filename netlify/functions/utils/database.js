@@ -9,6 +9,8 @@ const { Client, query } = faunadb;
 
 // Initialize Fauna client
 let client = null;
+let initPromise = null;
+let initComplete = false;
 
 function getClient() {
   if (!client) {
@@ -19,7 +21,12 @@ function getClient() {
       throw new Error('Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.');
     }
     
-    client = new Client({ secret });
+    client = new Client({ 
+      secret,
+      // Optimize connection settings for serverless
+      keepAlive: false,
+      timeout: 10000 // 10 second timeout
+    });
   }
   
   return client;
@@ -33,57 +40,78 @@ const COLLECTIONS = {
 };
 
 /**
- * Initialize database collections (idempotent)
+ * Initialize database collections (idempotent, cached)
+ * Returns immediately if already initialized or initializing
  */
 export async function initializeDatabase() {
-  try {
-    const faunaClient = getClient();
-    
-    // Create collections if they don't exist
-    const collections = [COLLECTIONS.MEMBERS, COLLECTIONS.MESSAGES, COLLECTIONS.PROJECTS];
-    
-    for (const collectionName of collections) {
+  // If already initialized, return immediately
+  if (initComplete) {
+    return true;
+  }
+  
+  // If initialization is in progress, wait for it
+  if (initPromise) {
+    return initPromise;
+  }
+  
+  // Start initialization (non-blocking, cached)
+  initPromise = (async () => {
+    try {
+      const faunaClient = getClient();
+      
+      // Create collections in parallel for speed
+      const collections = [COLLECTIONS.MEMBERS, COLLECTIONS.MESSAGES, COLLECTIONS.PROJECTS];
+      const collectionPromises = collections.map(async (collectionName) => {
+        try {
+          await faunaClient.query(
+            query.If(
+              query.Exists(query.Collection(collectionName)),
+              true,
+              query.CreateCollection({ name: collectionName })
+            )
+          );
+        } catch (error) {
+          // Collection might already exist, that's okay
+          if (error.message && !error.message.includes('already exists') && !error.message.includes('instance not found')) {
+            console.error(`Error creating collection ${collectionName}:`, error.message);
+          }
+        }
+      });
+      
+      // Wait for all collections to be created (or fail gracefully)
+      await Promise.allSettled(collectionPromises);
+      
+      // Create index for members (email lookup)
       try {
         await faunaClient.query(
           query.If(
-            query.Exists(query.Collection(collectionName)),
+            query.Exists(query.Index('members_by_email')),
             true,
-            query.CreateCollection({ name: collectionName })
+            query.CreateIndex({
+              name: 'members_by_email',
+              source: query.Collection(COLLECTIONS.MEMBERS),
+              terms: [{ field: ['data', 'email'] }],
+              unique: true
+            })
           )
         );
       } catch (error) {
-        // Collection might already exist, that's okay
-        if (error.message && !error.message.includes('already exists')) {
-          console.error(`Error creating collection ${collectionName}:`, error);
+        if (error.message && !error.message.includes('already exists') && !error.message.includes('instance not found')) {
+          console.error('Error creating members_by_email index:', error.message);
         }
       }
-    }
-    
-    // Create indexes for members (email lookup)
-    try {
-      await faunaClient.query(
-        query.If(
-          query.Exists(query.Index('members_by_email')),
-          true,
-          query.CreateIndex({
-            name: 'members_by_email',
-            source: query.Collection(COLLECTIONS.MEMBERS),
-            terms: [{ field: ['data', 'email'] }],
-            unique: true
-          })
-        )
-      );
+      
+      initComplete = true;
+      return true;
     } catch (error) {
-      if (error.message && !error.message.includes('already exists')) {
-        console.error('Error creating members_by_email index:', error);
-      }
+      console.error('Error initializing database:', error.message);
+      // Reset promise on error so it can be retried
+      initPromise = null;
+      return false;
     }
-    
-    return true;
-  } catch (error) {
-    console.error('Error initializing database:', error);
-    return false;
-  }
+  })();
+  
+  return initPromise;
 }
 
 /**
@@ -117,19 +145,37 @@ export async function getMemberByEmail(email) {
     const faunaClient = getClient();
     const emailLower = email.toLowerCase().trim();
     
-    const response = await faunaClient.query(
-      query.Get(query.Match(query.Index('members_by_email'), emailLower))
-    );
-    
-    return {
-      id: response.ref.id,
-      ...response.data
-    };
+    // Try to use index first (fastest)
+    try {
+      const response = await faunaClient.query(
+        query.Get(query.Match(query.Index('members_by_email'), emailLower))
+      );
+      
+      return {
+        id: response.ref.id,
+        ...response.data
+      };
+    } catch (indexError) {
+      // If index doesn't exist yet, fall back to scanning (slower but works)
+      if (indexError.message && (indexError.message.includes('not found') || indexError.message.includes('instance not found'))) {
+        console.log('[DB] Index not ready, falling back to scan...');
+        // Fallback: get all members and filter (only for first few requests)
+        const allMembers = await getMembers();
+        const member = allMembers.find(m => m.email && m.email.toLowerCase() === emailLower);
+        return member || null;
+      }
+      throw indexError;
+    }
   } catch (error) {
     if (error.message && error.message.includes('not found')) {
       return null;
     }
-    console.error('Error getting member by email:', error);
+    // If database not configured, return null (will show "invalid credentials")
+    if (error.message && error.message.includes('Database not configured')) {
+      console.error('[DB] Database not configured - please set FAUNA_SECRET_KEY');
+      return null;
+    }
+    console.error('Error getting member by email:', error.message || error);
     return null;
   }
 }
