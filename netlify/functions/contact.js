@@ -1,4 +1,4 @@
-import { createMessage } from './utils/database.js';
+import { createMessage, initializeDatabase } from './utils/database.js';
 import { validateEmail, validateName, sanitizeInput } from './utils/validation.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
@@ -10,6 +10,20 @@ export const handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
     return handleMethodNotAllowed(['POST']);
   }
+
+  // Check if database is configured
+  if (!process.env.FAUNA_SECRET_KEY) {
+    console.error('[CONTACT] FAUNA_SECRET_KEY not configured');
+    return errorResponse(
+      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      503
+    );
+  }
+
+  // Initialize database (non-blocking, cached)
+  initializeDatabase().catch(err => {
+    console.error('[CONTACT] Database initialization error (non-blocking):', err.message);
+  });
 
   try {
     let body;

@@ -46,6 +46,18 @@ export const handler = async (event, context) => {
     };
   }
 
+  // Check if database is configured
+  if (!process.env.FAUNA_SECRET_KEY) {
+    return {
+      statusCode: 503,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      }),
+    };
+  }
+
   try {
     // Initialize database
     await initializeDatabase();

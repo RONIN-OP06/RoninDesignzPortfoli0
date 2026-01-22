@@ -17,15 +17,21 @@ function getClient() {
     const secret = process.env.FAUNA_SECRET_KEY;
     
     if (!secret) {
-      console.error('FAUNA_SECRET_KEY environment variable is not set');
+      console.error('[DB] FAUNA_SECRET_KEY environment variable is not set');
+      console.error('[DB] Available env vars:', Object.keys(process.env).filter(k => k.includes('FAUNA') || k.includes('NETLIFY')));
+      console.error('[DB] NODE_ENV:', process.env.NODE_ENV);
+      console.error('[DB] NETLIFY:', process.env.NETLIFY);
       throw new Error('Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.');
     }
+    
+    // Log that we have the key (but not the actual key for security)
+    console.log('[DB] Fauna client initialized (key length:', secret.length, ')');
     
     client = new Client({ 
       secret,
       // Optimize connection settings for serverless
       keepAlive: false,
-      timeout: 10000 // 10 second timeout
+      timeout: 30000 // 30 second timeout for slow connections
     });
   }
   

@@ -1,34 +1,20 @@
 import { getMembers, getMemberByEmail, createMember, initializeDatabase } from './utils/database.js';
 import bcrypt from 'bcryptjs';
+import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
 export const handler = async (event, context) => {
-  // CORS headers
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Content-Type': 'application/json',
-  };
-
-  // Handle preflight
+  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+    return handleOptions();
   }
 
   // Check if database is configured
   if (!process.env.FAUNA_SECRET_KEY) {
-    return {
-      statusCode: 503,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
-      }),
-    };
+    console.error('[MEMBERS] FAUNA_SECRET_KEY not configured');
+    return errorResponse(
+      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      503
+    );
   }
 
   // Initialize database (non-blocking, cached)
@@ -43,30 +29,22 @@ export const handler = async (event, context) => {
       // Remove passwords from response
       const safeMembers = members.map(({ password, ...member }) => member);
       
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          members: safeMembers,
-        }),
-      };
+      return successResponse({ members: safeMembers }, 'Members retrieved successfully');
     }
 
     if (event.httpMethod === 'POST') {
-      const body = JSON.parse(event.body || '{}');
+      let body;
+      try {
+        body = event.body ? JSON.parse(event.body) : {};
+      } catch (parseError) {
+        return errorResponse('Invalid JSON in request body', 400);
+      }
+
       const { name, email, password, phone } = body;
 
       // Validation
       if (!name || !email || !password) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            message: 'Name, email, and password are required',
-          }),
-        };
+        return errorResponse('Name, email, and password are required', 400);
       }
 
       // Hash password
@@ -86,57 +64,24 @@ export const handler = async (event, context) => {
         // Remove password from response
         const { password: _, ...safeMember } = newMember;
 
-        return {
-          statusCode: 201,
-          headers,
-          body: JSON.stringify({
-            success: true,
-            message: 'Member registered successfully',
-            member: safeMember,
-          }),
-        };
+        return successResponse(
+          { member: safeMember },
+          'Member registered successfully',
+          201
+        );
       } catch (dbError) {
         if (dbError.message && dbError.message.includes('already registered')) {
-          return {
-            statusCode: 400,
-            headers,
-            body: JSON.stringify({
-              success: false,
-              message: 'Email already registered',
-            }),
-          };
+          return errorResponse('Email already registered', 400);
         }
         
-        console.error('Database error creating member:', dbError);
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            message: 'Failed to save member. Please try again.',
-          }),
-        };
+        console.error('[MEMBERS] Database error creating member:', dbError);
+        return errorResponse('Failed to save member. Please try again.', 500);
       }
     }
 
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Method not allowed',
-      }),
-    };
+    return handleMethodNotAllowed(['GET', 'POST']);
   } catch (error) {
-    console.error('Error in members function:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Internal server error',
-        error: error.message,
-      }),
-    };
+    console.error('[MEMBERS ERROR]', error);
+    return errorResponse('Internal server error', 500, error);
   }
 };

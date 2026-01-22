@@ -34,13 +34,21 @@ export class ThreeJSScene {
     );
     this.camera.position.z = CONFIG.THREEJS.CAMERA.INITIAL_Z;
 
+    // Optimize renderer for performance
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    const isLowPerformance = navigator.hardwareConcurrency < 4 || (navigator.deviceMemory && navigator.deviceMemory < 4);
+    
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
-      antialias: true,
-      alpha: true
+      antialias: !isMobile && !isLowPerformance, // Disable antialiasing on mobile/low-end devices
+      alpha: true,
+      powerPreference: isMobile || isLowPerformance ? "default" : "high-performance"
     });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(isMobile || isLowPerformance ? 1 : Math.min(window.devicePixelRatio, 2));
+    
+    // Enable frustum culling for better performance
+    this.renderer.sortObjects = false;
 
     this._createBackgroundCubes();
     this._createMainCube();
@@ -72,8 +80,8 @@ export class ThreeJSScene {
   }
 
   _createBackgroundCubes() {
-    // background cubes for depth
-    const cubeCount = 150;
+    // background cubes for depth - reduced count for better performance
+    const cubeCount = 100; // Reduced from 150 to 100 for lighter load
     const spread = 100;
     const depth = 200;
     const minSize = 0.05;
@@ -137,8 +145,25 @@ export class ThreeJSScene {
   }
 
   _setupEventListeners() {
-    window.addEventListener('scroll', () => this._handleScroll());
-    window.addEventListener('resize', () => this._handleResize());
+    // Throttle scroll and resize events for better performance
+    let scrollTimeout;
+    let resizeTimeout;
+    
+    window.addEventListener('scroll', () => {
+      if (scrollTimeout) return;
+      scrollTimeout = requestAnimationFrame(() => {
+        this._handleScroll();
+        scrollTimeout = null;
+      });
+    });
+    
+    window.addEventListener('resize', () => {
+      if (resizeTimeout) return;
+      resizeTimeout = setTimeout(() => {
+        this._handleResize();
+        resizeTimeout = null;
+      }, 100);
+    });
   }
 
   _handleScroll() {
@@ -177,20 +202,25 @@ export class ThreeJSScene {
     }
     
     // Animate background cubes - slow rotation and subtle floating
-    this.backgroundCubes.forEach((cube, index) => {
-      // Slow rotation
-      cube.rotation.x += cube.userData.rotationSpeed.x;
-      cube.rotation.y += cube.userData.rotationSpeed.y;
-      cube.rotation.z += cube.userData.rotationSpeed.z;
-      
-      // Subtle floating motion - different phase for each cube
-      const phase = index * 0.1;
-      cube.position.y += Math.sin(this.time + phase) * cube.userData.floatSpeed;
-      
-      // Subtle parallax effect - cubes further back move slower
-      const depthFactor = Math.abs(cube.userData.initialZ) / 200;
-      cube.position.x += Math.cos(this.time * 0.5 + phase) * cube.userData.floatSpeed * depthFactor;
-    });
+    // Update only every other frame for better performance
+    const shouldUpdateBackground = Math.floor(this.time * 10) % 2 === 0;
+    
+    if (shouldUpdateBackground) {
+      this.backgroundCubes.forEach((cube, index) => {
+        // Slow rotation
+        cube.rotation.x += cube.userData.rotationSpeed.x;
+        cube.rotation.y += cube.userData.rotationSpeed.y;
+        cube.rotation.z += cube.userData.rotationSpeed.z;
+        
+        // Subtle floating motion - different phase for each cube
+        const phase = index * 0.1;
+        cube.position.y += Math.sin(this.time + phase) * cube.userData.floatSpeed;
+        
+        // Subtle parallax effect - cubes further back move slower
+        const depthFactor = Math.abs(cube.userData.initialZ) / 200;
+        cube.position.x += Math.cos(this.time * 0.5 + phase) * cube.userData.floatSpeed * depthFactor;
+      });
+    }
   }
 
   _animate() {

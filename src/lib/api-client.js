@@ -51,9 +51,9 @@ async function request(endpoint, options = {}) {
   }
 
   try {
-    // PRIORITY: Sign in takes priority - add timeout for faster failure
+    // Optimized timeout - reduced from 30s to 10s for faster failure detection
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout (database init can take time)
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
     const response = await fetch(url, {
       ...options,

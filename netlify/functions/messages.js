@@ -1,4 +1,4 @@
-import { getMessages, getMessageById, updateMessage } from './utils/database.js';
+import { getMessages, getMessageById, updateMessage, initializeDatabase } from './utils/database.js';
 
 const ADMIN_EMAILS = ['ronindesignz123@gmail.com', 'roninsyoutub123@gmail.com'].map(e => e.toLowerCase().trim());
 
@@ -31,6 +31,23 @@ export const handler = async (event, context) => {
       body: '',
     };
   }
+
+  // Check if database is configured
+  if (!process.env.FAUNA_SECRET_KEY) {
+    return {
+      statusCode: 503,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      }),
+    };
+  }
+
+  // Initialize database (non-blocking, cached)
+  initializeDatabase().catch(err => {
+    console.error('[MESSAGES] Database initialization error (non-blocking):', err.message);
+  });
 
   try {
     const authHeader = event.headers.authorization || event.headers.Authorization;

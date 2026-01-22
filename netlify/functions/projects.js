@@ -1,4 +1,4 @@
-import { getProjects, createProject, deleteProject } from './utils/database.js';
+import { getProjects, createProject, deleteProject, initializeDatabase } from './utils/database.js';
 
 function isAdmin(authHeader) {
   if (!authHeader) return false;
@@ -24,6 +24,23 @@ export const handler = async (event, context) => {
       body: '',
     };
   }
+
+  // Check if database is configured
+  if (!process.env.FAUNA_SECRET_KEY) {
+    return {
+      statusCode: 503,
+      headers,
+      body: JSON.stringify({
+        success: false,
+        message: 'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      }),
+    };
+  }
+
+  // Initialize database (non-blocking, cached)
+  initializeDatabase().catch(err => {
+    console.error('[PROJECTS] Database initialization error (non-blocking):', err.message);
+  });
 
   try {
     if (event.httpMethod === 'GET') {
