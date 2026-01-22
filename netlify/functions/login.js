@@ -1,4 +1,4 @@
-import { readData } from './utils/db.js';
+import { readData, writeData } from './utils/db.js';
 import bcrypt from 'bcryptjs';
 import { validateEmail, validatePassword, sanitizeInput } from './utils/validation.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
@@ -59,9 +59,31 @@ export const handler = async (event, context) => {
     }
 
     // Verify password
-    let passwordMatch;
+    let passwordMatch = false;
     try {
-      passwordMatch = await bcrypt.compare(password, member.password);
+      // Check if password is hashed (starts with $2)
+      if (member.password && member.password.startsWith('$2')) {
+        // Password is hashed, use bcrypt.compare
+        passwordMatch = await bcrypt.compare(password, member.password);
+        
+        // If password matches but is old hash, we could rehash here if needed
+        // but for now we'll just verify
+      } else {
+        // Legacy plaintext password - compare directly and upgrade
+        passwordMatch = member.password === password;
+        
+        if (passwordMatch) {
+          // Upgrade plaintext password to hashed
+          const hashedPassword = await bcrypt.hash(password, 10);
+          const allMembers = readData('members.json', []);
+          const memberIndex = allMembers.findIndex(m => m.id === member.id);
+          if (memberIndex >= 0) {
+            allMembers[memberIndex].password = hashedPassword;
+            writeData('members.json', allMembers);
+            console.log(`[PASSWORD UPGRADE] Upgraded plaintext password for ${member.email}`);
+          }
+        }
+      }
     } catch (bcryptError) {
       console.error('Bcrypt error:', bcryptError);
       return errorResponse('Authentication error', 500);
@@ -72,7 +94,14 @@ export const handler = async (event, context) => {
     }
 
     // Determine admin status (PRIORITY: Admin takes priority)
-    const isAdmin = isAdminEmail || ADMIN_EMAILS.includes(member.email.toLowerCase());
+    // Double-check for reliability - ensures admin status is correct every time
+    const memberEmailLower = member.email.toLowerCase();
+    const isAdmin = isAdminEmail || ADMIN_EMAILS.includes(memberEmailLower);
+    
+    // Log admin check for debugging (can be removed in production)
+    if (isAdmin) {
+      console.log(`[ADMIN CHECK] Email: ${memberEmailLower}, isAdminEmail: ${isAdminEmail}, memberEmailMatch: ${ADMIN_EMAILS.includes(memberEmailLower)}`);
+    }
 
     // Remove password from response
     const { password: _, ...safeMember } = member;

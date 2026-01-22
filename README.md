@@ -94,16 +94,14 @@ Technologies used:
 
 ## ⚙️ Backend Technology Stack
 
-The backend is built with Express.js, providing a robust server-side framework. Security is a top priority, with multiple layers of protection including password hashing, rate limiting, and input validation.
+The backend is built with **Netlify Functions** (serverless), providing a scalable and cost-effective serverless architecture. The backend is fully integrated with the frontend on Netlify, ensuring seamless communication between frontend and backend. Security is a top priority, with multiple layers of protection including password hashing, input validation, and CORS handling.
 
 Backend technologies:
 
-- **Express.js** - Fast, unopinionated web framework for Node.js
-- **bcrypt** - Industry-standard password hashing library
-- **Multer** - Middleware for handling multipart/form-data file uploads
-- **Helmet** - Security middleware that sets various HTTP headers
-- **Express Rate Limit** - Basic rate-limiting middleware to prevent API abuse
-- **Express Validator** - Set of express.js middlewares for input validation
+- **Netlify Functions** - Serverless functions for scalable backend API
+- **bcryptjs** - Pure JavaScript password hashing library (serverless-compatible)
+- **Express.js** - Available for local development server
+- **File System** - JSON-based data storage using `/tmp` directory in production
 
 ---
 
@@ -150,30 +148,30 @@ ADMIN_EMAILS=your-admin-email@example.com
 
 Replace `your-admin-email@example.com` with your actual admin email address. You can add multiple admin emails by separating them with commas.
 
-#### 4. Start the development servers
+#### 4. Start the development server
 
-You'll need to run both the backend and frontend servers. Open two terminal windows:
+For local development with Netlify Functions:
 
-**Terminal 1 - Backend Server:**
 ```bash
-npm start
+npm run dev:netlify
 ```
 
-This starts the Express.js server on port 3000.
+This starts the Netlify Dev server which runs both frontend and backend functions locally.
 
-**Terminal 2 - Frontend Dev Server:**
+Alternatively, for Vite-only development:
+
 ```bash
 npm run dev
 ```
 
-This starts the Vite development server, typically on port 5173.
+This starts the Vite development server on port 5173. Note: API calls will use Netlify Functions in production, or you can run a local Express server with `npm start` for full local development.
 
 #### 5. Access the application
 
-Once both servers are running, you can access the application:
+Once the server is running, you can access the application:
 
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:3000
+- **Frontend**: http://localhost:5173 (Vite) or http://localhost:8888 (Netlify Dev)
+- **Backend API**: http://localhost:8888/.netlify/functions (Netlify Dev) or http://localhost:3000/api (Express)
 
 ---
 
@@ -227,7 +225,7 @@ Implemented security features:
 - **Authentication** - Secure token-based authentication system ensures only authorized users can access protected resources
 - **Role-Based Access** - Admin-only routes are protected, ensuring that only authorized administrators can access sensitive functionality
 
-For detailed security information, implementation details, and best practices, see [SECURITY_REPORT.md](./SECURITY_REPORT.md).
+For detailed security information, implementation details, and best practices, see [SECURITY.md](./SECURITY.md).
 
 ---
 
@@ -235,19 +233,13 @@ For detailed security information, implementation details, and best practices, s
 
 The project includes comprehensive documentation:
 
-- **[DEVELOPMENT_PROCESS.md](./DEVELOPMENT_PROCESS.md)** - Detailed development journey, challenges faced, bugs encountered, and solutions implemented. Provides insight into the decision-making process and lessons learned.
-
-- **[SECURITY_REPORT.md](./SECURITY_REPORT.md)** - Comprehensive security documentation covering all security measures, testing procedures, and recommendations for production deployment.
-
 - **[SECURITY.md](./SECURITY.md)** - Overview of the security framework and measures implemented in the application.
-
-- **[DEPLOY_NOW.md](./DEPLOY_NOW.md)** - Step-by-step guide to deploy your site live using Render (backend) and Vercel (frontend). Includes troubleshooting and alternative deployment options.
-
-- **[VERCEL_QUICK_FIX.md](./VERCEL_QUICK_FIX.md)** - Quick reference guide for fixing common Vercel deployment issues.
 
 - **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - High-level project overview, statistics, and key achievements.
 
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guidelines for contributing to the project, including code style and pull request process.
+
+- **[QUICK_START.md](./QUICK_START.md)** - Quick start guide for getting the project up and running.
 
 ---
 
@@ -281,7 +273,7 @@ npm run build
 
 This command creates an optimized production build in the `dist/` directory. The build includes minified JavaScript and CSS, optimized assets, and is ready for deployment to a production server.
 
-You can serve the production build using your backend server or any static file server. The Express.js server is configured to serve static files from the `dist/` directory in production.
+The production build is automatically deployed to Netlify, which serves the static files and handles all backend API calls through Netlify Functions. The backend is fully integrated and hosted on Netlify, ensuring seamless communication between frontend and backend.
 
 ## 🌐 Environment Variables for Production
 

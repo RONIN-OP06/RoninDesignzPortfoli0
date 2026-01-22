@@ -1,6 +1,9 @@
 function getApiBaseUrl() {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  // IGNORE VITE_API_BASE_URL if it points to old backend - always use Netlify Functions
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && !envUrl.includes('ronindesignz-backend') && !envUrl.includes('onrender')) {
+    // Only use env URL if it's not the old backend
+    return envUrl;
   }
   
   if (typeof window !== 'undefined') {

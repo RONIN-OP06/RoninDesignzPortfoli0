@@ -31,11 +31,15 @@ export const LoginForm = memo(function LoginForm() {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
+    e.stopPropagation()
     setError("")
+
+    console.log('[LOGIN FORM] Submit triggered', { email, password: password ? '***' : '' })
 
     // PRIORITY: Validate inputs immediately
     if (!email || !password) {
       setError("Please fill in all fields")
+      console.log('[LOGIN FORM] Validation failed - missing fields')
       return
     }
 
@@ -43,17 +47,20 @@ export const LoginForm = memo(function LoginForm() {
     setIsSubmitting(true)
 
     try {
+      console.log('[LOGIN FORM] Making API call...')
       // PRIORITY: Sign in takes priority - make API call
       const response = await apiClient.login({ 
         email: email.trim().toLowerCase(), 
         password 
       })
+      console.log('[LOGIN FORM] API response:', response)
 
       if (response.success) {
         const data = response.data || {}
         const member = data.member || {}
         
         // PRIORITY: Admin login takes priority - check admin status first
+        // Double-check from multiple sources for reliability
         const isAdmin = data.isAdmin === true || member.isAdmin === true
 
         if (!member.id || !member.email) {
@@ -62,19 +69,24 @@ export const LoginForm = memo(function LoginForm() {
           return
         }
 
+        // Verify admin status one more time from email (for consistency)
+        const emailLower = member.email.toLowerCase().trim();
+        const verifiedAdmin = isAdmin || ADMIN_EMAILS.includes(emailLower);
+
         const userData = {
           id: member.id,
           name: member.name || '',
           email: member.email,
-          isAdmin: isAdmin
+          isAdmin: verifiedAdmin  // Use verified admin status
         }
 
         // Login user
         login(userData)
 
         // PRIORITY: Admin login takes priority - redirect admin first
-        if (isAdmin) {
-          // Immediate redirect for admin
+        if (verifiedAdmin) {
+          // Immediate redirect for admin - works every time
+          console.log('[ADMIN LOGIN] Redirecting admin to dashboard');
           window.location.href = '/admin/messages'
         } else {
           navigate('/contact', { replace: true })

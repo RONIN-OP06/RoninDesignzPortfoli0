@@ -1,8 +1,11 @@
 import { CONFIG } from './config';
 
 function getBaseUrl() {
-  if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+  // IGNORE VITE_API_BASE_URL if it points to old backend - always use Netlify Functions
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && !envUrl.includes('ronindesignz-backend') && !envUrl.includes('onrender')) {
+    // Only use env URL if it's not the old backend
+    return envUrl;
   }
   
   if (typeof window !== 'undefined') {
@@ -12,13 +15,7 @@ function getBaseUrl() {
     // In production, it will be the actual domain/.netlify/functions
     const origin = window.location.origin;
     
-    // Check if we're in Netlify dev mode (port 8888) or regular dev (port 5173)
-    if (origin.includes('localhost:8888') || origin.includes('localhost:5173') || origin.includes('localhost')) {
-      // For local development, use Netlify Functions if available
-      // Otherwise fall back to trying the current origin
-      return origin + '/.netlify/functions';
-    }
-    
+    // Always use Netlify Functions - ignore any old backend URLs
     return origin + '/.netlify/functions';
   }
   
