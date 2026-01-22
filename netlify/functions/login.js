@@ -19,6 +19,15 @@ export const handler = async (event, context) => {
     return handleMethodNotAllowed(['POST']);
   }
 
+  // Check if database is configured
+  if (!process.env.FAUNA_SECRET_KEY) {
+    console.error('[LOGIN] FAUNA_SECRET_KEY not configured');
+    return errorResponse(
+      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables. See FAUNA_SETUP.md for instructions.',
+      503
+    );
+  }
+
   // Initialize database (non-blocking, cached - won't block if already initialized)
   // Don't wait for it - let it run in background, operations will work once ready
   initializeDatabase().catch(err => {
@@ -54,7 +63,20 @@ export const handler = async (event, context) => {
     const isAdminEmail = ADMIN_EMAILS.includes(sanitizedEmail);
 
     // Get member from database
-    const member = await getMemberByEmail(sanitizedEmail);
+    let member;
+    try {
+      member = await getMemberByEmail(sanitizedEmail);
+    } catch (dbError) {
+      console.error('[LOGIN] Database error:', dbError.message);
+      // If database error, return helpful message
+      if (dbError.message && dbError.message.includes('Database not configured')) {
+        return errorResponse(
+          'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+          503
+        );
+      }
+      return errorResponse('Database error. Please try again in a moment.', 503);
+    }
 
     if (!member) {
       // Don't reveal if email exists for security
