@@ -4,12 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { FormField } from "@/components/molecules/FormField"
 import { ApiClient } from "@/lib/api-client"
-import { CONFIG } from "@/lib/config"
 import { useAuth } from "@/contexts/AuthContext"
 import { Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { ValidationMessage } from "@/components/atoms/ValidationMessage"
 
 const apiClient = new ApiClient()
 
@@ -34,41 +32,22 @@ export const LoginForm = memo(function LoginForm() {
     e.stopPropagation()
     setError("")
 
-    console.log('[LOGIN FORM] Submit triggered', { email, password: password ? '***' : '' })
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:32',message:'Form submit triggered',data:{hasEmail:!!email,hasPassword:!!password},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-
-    // PRIORITY: Validate inputs immediately
     if (!email || !password) {
       setError("Please fill in all fields")
-      console.log('[LOGIN FORM] Validation failed - missing fields')
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:40',message:'Validation failed',data:{hasEmail:!!email,hasPassword:!!password},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
       return
     }
 
-    // PRIORITY: Admin login takes priority - show loading immediately
     setIsSubmitting(true)
 
     try {
-      console.log('[LOGIN FORM] Making API call...')
-      // PRIORITY: Sign in takes priority - make API call
       const response = await apiClient.login({ 
         email: email.trim().toLowerCase(), 
         password 
       })
-      console.log('[LOGIN FORM] API response:', response)
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:56',message:'API response received',data:{success:response.success,hasData:!!response.data,isAdmin:response.data?.isAdmin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
 
       if (response.success) {
         const data = response.data || {}
         const member = data.member || {}
-        
-        // PRIORITY: Admin login takes priority - check admin status first
-        // Double-check from multiple sources for reliability
         const isAdmin = data.isAdmin === true || member.isAdmin === true
 
         if (!member.id || !member.email) {
@@ -77,7 +56,6 @@ export const LoginForm = memo(function LoginForm() {
           return
         }
 
-        // Verify admin status one more time from email (for consistency)
         const emailLower = member.email.toLowerCase().trim();
         const verifiedAdmin = isAdmin || ADMIN_EMAILS.includes(emailLower);
 
@@ -85,43 +63,25 @@ export const LoginForm = memo(function LoginForm() {
           id: member.id,
           name: member.name || '',
           email: member.email,
-          isAdmin: verifiedAdmin  // Use verified admin status
+          isAdmin: verifiedAdmin
         }
 
-        // Login user
         login(userData)
 
-        // PRIORITY: Admin login takes priority - redirect admin first
         if (verifiedAdmin) {
-          // Immediate redirect for admin - works every time
-          console.log('[ADMIN LOGIN] Redirecting admin to dashboard');
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:87',message:'Admin redirect triggered',data:{verifiedAdmin,memberEmail:member.email},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-          // #endregion
           window.location.href = '/admin/messages'
         } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:92',message:'Regular user redirect',data:{verifiedAdmin},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-          // #endregion
           navigate('/contact', { replace: true })
         }
       } else {
-        // Better error messages
         const errorMsg = response.message || "Invalid email or password"
         setError(errorMsg)
         setIsSubmitting(false)
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:95',message:'Login failed',data:{errorMsg},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-        // #endregion
       }
     } catch (err) {
-      // Enhanced error handling
       console.error('[LOGIN ERROR]', err)
       setError("Connection error. Please check your internet connection and try again.")
       setIsSubmitting(false)
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/f26247a0-1bd1-4fa3-8fe2-07566382e1ba',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'LoginForm.jsx:102',message:'Login exception',data:{error:err.message},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-      // #endregion
     }
   }, [email, password, login, navigate])
 

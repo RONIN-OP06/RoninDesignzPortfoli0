@@ -2,13 +2,11 @@ import { useState, useEffect, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { ApiClient } from "@/lib/api-client"
+import { apiClient } from "@/lib/api-client"
 import { GradientText } from "@/components/atoms/GradientText"
 import { Mail, User, MessageSquare, Phone, Lock } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { isAdminUser } from "@/lib/auth-utils"
-
-const apiClient = new ApiClient()
 
 export function AdminMessagesPage() {
   const { user, isAuthenticated, loading: authLoading } = useAuth()

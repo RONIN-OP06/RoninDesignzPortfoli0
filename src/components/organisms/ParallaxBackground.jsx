@@ -46,7 +46,6 @@ export const ParallaxBackground = memo(function ParallaxBackground() {
       canvas.style.display = 'block'
       canvas.style.visibility = 'visible'
       
-      console.log('ParallaxBackground initialized', { useSimpleMode, width: window.innerWidth, height: window.innerHeight })
       bgGeometry = new THREE.PlaneGeometry(2, 2)
       bgMaterial = new THREE.ShaderMaterial({
       uniforms: {
@@ -220,8 +219,6 @@ export const ParallaxBackground = memo(function ParallaxBackground() {
       }
       
       animate()
-      
-      console.log('ParallaxBackground animation started')
 
       return () => {
         isMounted = false
