@@ -1,3 +1,4 @@
+import '../_shared/env-loader.js'; // Load .env in local dev
 import { getMembers, getMemberByEmail, createMember, initializeDatabase } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
@@ -8,11 +9,21 @@ export const handler = async (event, context) => {
     return handleOptions();
   }
 
-  // Check if database is configured
+  // Best practice: Check if database is configured with validation
   if (!process.env.FAUNA_SECRET_KEY) {
     console.error('[MEMBERS] FAUNA_SECRET_KEY not configured');
     return errorResponse(
       'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      503
+    );
+  }
+  
+  // Best practice: Validate key format
+  const key = process.env.FAUNA_SECRET_KEY;
+  if (!key.startsWith('fn') || key.length < 40) {
+    console.error('[MEMBERS] FAUNA_SECRET_KEY appears invalid');
+    return errorResponse(
+      'Invalid FAUNA_SECRET_KEY format. Get your key from https://dashboard.fauna.com/',
       503
     );
   }
@@ -58,25 +69,44 @@ export const handler = async (event, context) => {
         phone: phone || '',
       };
 
-      try {
-        const newMember = await createMember(memberData);
-        
-        // Remove password from response
-        const { password: _, ...safeMember } = newMember;
-
-        return successResponse(
-          { member: safeMember },
-          'Member registered successfully',
-          201
-        );
-      } catch (dbError) {
-        if (dbError.message && dbError.message.includes('already registered')) {
-          return errorResponse('Email already registered', 400);
+      // Best practice: Retry logic for database operations
+      let newMember;
+      let retries = 0;
+      const maxRetries = 3;
+      
+      while (retries < maxRetries) {
+        try {
+          newMember = await createMember(memberData);
+          break; // Success, exit retry loop
+        } catch (dbError) {
+          retries++;
+          
+          // Best practice: Don't retry on validation errors
+          if (dbError.message && dbError.message.includes('already registered')) {
+            return errorResponse('Email already registered', 400);
+          }
+          
+          // Best practice: Retry on transient errors
+          if (retries < maxRetries) {
+            const delay = 1000 * retries; // Exponential backoff
+            console.log(`[MEMBERS] Retry ${retries}/${maxRetries} after ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+          } else {
+            // All retries exhausted
+            console.error('[MEMBERS] Database error creating member after retries:', dbError);
+            return errorResponse('Failed to save member. Please try again.', 500);
+          }
         }
-        
-        console.error('[MEMBERS] Database error creating member:', dbError);
-        return errorResponse('Failed to save member. Please try again.', 500);
       }
+      
+      // Remove password from response
+      const { password: _, ...safeMember } = newMember;
+
+      return successResponse(
+        { member: safeMember },
+        'Member registered successfully',
+        201
+      );
     }
 
     return handleMethodNotAllowed(['GET', 'POST']);

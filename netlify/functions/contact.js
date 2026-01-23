@@ -1,3 +1,4 @@
+import '../_shared/env-loader.js'; // Load .env in local dev
 import { createMessage, initializeDatabase } from './utils/database.js';
 import { validateEmail, validateName, sanitizeInput } from './utils/validation.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';

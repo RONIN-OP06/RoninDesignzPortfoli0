@@ -2,6 +2,7 @@
  * Setup admin accounts in Fauna DB
  * Call this function once after setting up Fauna to create admin accounts
  */
+import '../_shared/env-loader.js'; // Load .env in local dev
 import { initializeDatabase, getMemberByEmail, createMember, updateMember } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 
@@ -19,43 +20,25 @@ const ADMIN_ACCOUNTS = [
   }
 ];
 
-export const handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Content-Type': 'application/json',
-  };
+import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
+export const handler = async (event, context) => {
+  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+    return handleOptions();
   }
 
+  // Only allow POST
   if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Method not allowed',
-      }),
-    };
+    return handleMethodNotAllowed(['POST']);
   }
 
   // Check if database is configured
   if (!process.env.FAUNA_SECRET_KEY) {
-    return {
-      statusCode: 503,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
-      }),
-    };
+    return errorResponse(
+      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      503
+    );
   }
 
   try {
@@ -120,31 +103,17 @@ export const handler = async (event, context) => {
       }
     }
     
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({
-        success: true,
-        message: 'Admin accounts processed',
-        created,
-        updated,
-        errors: errors.length > 0 ? errors : undefined,
-        accounts: ADMIN_ACCOUNTS.map(a => ({ 
-          email: a.email, 
-          name: a.name
-        }))
-      }),
-    };
+    return successResponse({
+      created,
+      updated,
+      errors: errors.length > 0 ? errors : undefined,
+      accounts: ADMIN_ACCOUNTS.map(a => ({ 
+        email: a.email, 
+        name: a.name
+      }))
+    }, 'Admin accounts processed');
   } catch (error) {
     console.error('Error setting up admin accounts:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Internal server error',
-        error: error.message,
-      }),
-    };
+    return errorResponse('Internal server error', 500, error);
   }
 };

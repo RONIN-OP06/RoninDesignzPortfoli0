@@ -99,9 +99,9 @@ The backend is built with **Netlify Functions** (serverless), providing a scalab
 Backend technologies:
 
 - **Netlify Functions** - Serverless functions for scalable backend API
+- **FaunaDB** - Serverless, flexible, transactional database for persistent data storage
 - **bcryptjs** - Pure JavaScript password hashing library (serverless-compatible)
 - **Express.js** - Available for local development server
-- **File System** - JSON-based data storage using `/tmp` directory in production
 
 ---
 
@@ -144,9 +144,12 @@ PORT=3000
 NODE_ENV=development
 API_BASE_URL=http://localhost:3000
 ADMIN_EMAILS=your-admin-email@example.com
+FAUNA_SECRET_KEY=your-fauna-secret-key
 ```
 
 Replace `your-admin-email@example.com` with your actual admin email address. You can add multiple admin emails by separating them with commas.
+
+**Important:** For database functionality, you need to set up FaunaDB. See [FAUNA_SETUP.md](./FAUNA_SETUP.md) for detailed instructions. The `FAUNA_SECRET_KEY` is required for the application to work properly.
 
 #### 4. Start the development server
 

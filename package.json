@@ -10,7 +10,13 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "deploy": "npm run build && gh-pages -d dist"
+    "deploy": "npm run build && gh-pages -d dist",
+    "test:login": "node test-and-fix.js",
+    "test:automated": "node automated-test-loop.js",
+    "test:continuous": "node test-login-continuous.js",
+    "build:automated": "node build-automation.js",
+    "clean": "node -e \"const fs=require('fs');['dist','.cache'].forEach(d=>{try{fs.rmSync(d,{recursive:true,force:true});console.log('Cleaned:',d)}catch(e){}})\"",
+    "setup:admins": "node -e \"fetch('http://localhost:8888/.netlify/functions/setup-admins',{method:'POST',headers:{'Content-Type':'application/json'}}).then(r=>r.json()).then(console.log).catch(console.error)\""
   },
   "keywords": [
     "portfolio",

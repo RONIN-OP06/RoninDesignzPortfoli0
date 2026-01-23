@@ -1,47 +1,41 @@
-import { getMessages, getMessageById, updateMessage, initializeDatabase } from './utils/database.js';
+import '../_shared/env-loader.js'; // Load .env in local dev
+import { getMessages, getMessageById, updateMessage, initializeDatabase, getMemberById } from './utils/database.js';
+import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
 const ADMIN_EMAILS = ['ronindesignz123@gmail.com', 'roninsyoutub123@gmail.com'].map(e => e.toLowerCase().trim());
 
-function isAdmin(authHeader) {
-  // Simple auth check - in production, use proper JWT tokens
+async function isAdmin(authHeader) {
+  // Check if user is authenticated and is admin
   if (!authHeader) return false;
   
   try {
     const token = authHeader.replace('Bearer ', '');
-    // For now, we'll check if the user ID matches an admin email
-    // In production, decode JWT and verify
-    return true; // Simplified for now
+    if (!token) return false;
+    
+    // Get user from database by ID (token is user ID for now)
+    const member = await getMemberById(token);
+    if (!member) return false;
+    
+    // Check if member email is in admin list
+    const memberEmail = member.email?.toLowerCase().trim();
+    return ADMIN_EMAILS.includes(memberEmail);
   } catch {
     return false;
   }
 }
 
 export const handler = async (event, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, PUT, OPTIONS',
-    'Content-Type': 'application/json',
-  };
-
+  // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers,
-      body: '',
-    };
+    return handleOptions();
   }
 
   // Check if database is configured
   if (!process.env.FAUNA_SECRET_KEY) {
-    return {
-      statusCode: 503,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
-      }),
-    };
+    return errorResponse(
+      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
+      503
+    );
   }
 
   // Initialize database (non-blocking, cached)
@@ -52,15 +46,9 @@ export const handler = async (event, context) => {
   try {
     const authHeader = event.headers.authorization || event.headers.Authorization;
     
-    if (!isAdmin(authHeader)) {
-      return {
-        statusCode: 401,
-        headers,
-        body: JSON.stringify({
-          success: false,
-          message: 'Unauthorized - Admin access required',
-        }),
-      };
+    const adminCheck = await isAdmin(authHeader);
+    if (!adminCheck) {
+      return errorResponse('Unauthorized - Admin access required', 401);
     }
 
     if (event.httpMethod === 'GET') {
@@ -71,42 +59,28 @@ export const handler = async (event, context) => {
         new Date(b.createdAt) - new Date(a.createdAt)
       );
 
-      return {
-        statusCode: 200,
-        headers,
-        body: JSON.stringify({
-          success: true,
-          messages: sortedMessages,
-        }),
-      };
+      return successResponse({ messages: sortedMessages }, 'Messages retrieved successfully');
     }
 
     if (event.httpMethod === 'PUT') {
-      const { id, read } = JSON.parse(event.body || '{}');
+      let body;
+      try {
+        body = event.body ? JSON.parse(event.body) : {};
+      } catch (parseError) {
+        return errorResponse('Invalid JSON in request body', 400);
+      }
+
+      const { id, read } = body;
       
       if (!id) {
-        return {
-          statusCode: 400,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            message: 'Message ID is required',
-          }),
-        };
+        return errorResponse('Message ID is required', 400);
       }
 
       try {
         const existingMessage = await getMessageById(id);
         
         if (!existingMessage) {
-          return {
-            statusCode: 404,
-            headers,
-            body: JSON.stringify({
-              success: false,
-              message: 'Message not found',
-            }),
-          };
+          return errorResponse('Message not found', 404);
         }
 
         const updates = {};
@@ -116,46 +90,16 @@ export const handler = async (event, context) => {
 
         const updatedMessage = await updateMessage(id, updates);
 
-        return {
-          statusCode: 200,
-          headers,
-          body: JSON.stringify({
-            success: true,
-            message: 'Message updated',
-            data: updatedMessage,
-          }),
-        };
+        return successResponse(updatedMessage, 'Message updated');
       } catch (dbError) {
         console.error('Error updating message:', dbError);
-        return {
-          statusCode: 500,
-          headers,
-          body: JSON.stringify({
-            success: false,
-            message: 'Failed to update message',
-          }),
-        };
+        return errorResponse('Failed to update message', 500);
       }
     }
 
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Method not allowed',
-      }),
-    };
+    return handleMethodNotAllowed(['GET', 'PUT']);
   } catch (error) {
     console.error('Error in messages function:', error);
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({
-        success: false,
-        message: 'Internal server error',
-        error: error.message,
-      }),
-    };
+    return errorResponse('Internal server error', 500, error);
   }
 };
