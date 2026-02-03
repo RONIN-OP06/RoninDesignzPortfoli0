@@ -50,7 +50,8 @@ const programs = [
 // memoized project card component
 const ProjectCard = memo(({ project, isAdmin, onSelect, onEdit }) => {
   const isVideo = project.mediaType === "video" && project.video
-  const thumbnail = project.image || (isVideo ? "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop" : "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop")
+  const fallbackImage = "/images/projects/3d/Screenshot (5).png"
+  const thumbnail = project.image || (isVideo ? fallbackImage : fallbackImage)
   
   return (
     <Card
@@ -72,7 +73,7 @@ const ProjectCard = memo(({ project, isAdmin, onSelect, onEdit }) => {
         </button>
       )}
       <div className="relative overflow-hidden">
-        {isVideo ? (
+      {isVideo ? (
           <>
             <img
               src={thumbnail}
@@ -95,7 +96,7 @@ const ProjectCard = memo(({ project, isAdmin, onSelect, onEdit }) => {
             decoding="async"
             fetchpriority="low"
             onError={(e) => {
-              e.target.src = "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop"
+              e.target.src = "/images/projects/3d/Screenshot (5).png"
             }}
           />
         )}
@@ -462,7 +463,7 @@ export function PortfolioPage() {
                             decoding="async"
                             fetchpriority="high"
                             onError={(e) => {
-                              e.target.src = "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop"
+                              e.target.src = "/images/projects/3d/Screenshot (5).png"
                             }}
                           />
                         )}
@@ -558,7 +559,7 @@ export function PortfolioPage() {
                               alt={`Media ${index + 1}`}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                e.target.src = "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=200&h=200&fit=crop"
+                                e.target.src = "/images/projects/3d/Screenshot (5).png"
                               }}
                             />
                           )}

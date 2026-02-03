@@ -9,8 +9,8 @@ build/
 
 # Media files (large files that slow indexing)
 MediaFiles/
-public/images/
-public/videos/
+!public/images/
+!public/videos/
 dist/images/
 dist/videos/
 dist/ui-ux-mockups/
@@ -63,4 +63,4 @@ Ronin*
 
 # Context and data files
 # src/contexts/ - Allow AuthContext
-src/data/
+!src/data/

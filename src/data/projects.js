@@ -5,44 +5,44 @@
 export const projects = [
   {
     id: 1,
-    title: "Project Title 1",
-    description: "A detailed description of your first project. Explain what it does, technologies used, and key features.",
-    longDescription: "This is a comprehensive overview of your first project. Here you can provide detailed information about the project's purpose, the problem it solves, your approach, and the results achieved. You can write multiple paragraphs to fully explain the project.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+    title: "RoninDesignz Portfolio Website",
+    description: "A modern portfolio website featuring an interactive project gallery, admin login, and immersive visuals.",
+    longDescription: "Built a full-stack portfolio platform that combines a responsive React frontend with serverless APIs. The experience centers on a visually rich project gallery, polished UI/UX, and an admin workflow for managing content. The site is optimized for smooth navigation, clear project storytelling, and a professional presentation across devices.",
+    image: "/images/projects/3d/Screenshot (1).png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "image", url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop" }
+      { type: "image", url: "/images/projects/3d/Screenshot (1).png" }
     ],
-    technologies: ["React", "Node.js", "MongoDB"],
-    programming: ["JavaScript", "TypeScript"],
+    technologies: ["React", "Vite", "Tailwind CSS", "Netlify Functions"],
+    programming: ["JavaScript"],
     category: "Web Development",
-    liveLink: "https://example.com",
-    githubLink: "https://github.com/example",
+    liveLink: "https://ronindesignz.netlify.app",
+    githubLink: "https://github.com/RONIN-OP06/RoninDesignzPortfoli0",
     date: "2024",
     features: [
-      "Feature 1: Describe a key feature of the project",
-      "Feature 2: Another important feature",
-      "Feature 3: Additional functionality"
+      "Interactive project gallery with rich media support",
+      "Admin login flow with protected management routes",
+      "Responsive layouts with modern UI styling"
     ],
-    challenges: "Describe any challenges you faced and how you overcame them.",
-    results: "Highlight the results, impact, or achievements of this project."
+    challenges: "Balancing visual polish with performance while keeping the gallery fast across devices.",
+    results: "Delivered a production-ready portfolio site that highlights projects clearly and professionally."
   },
   {
     id: 2,
     title: "Portfolio Website UI Design",
     description: "Designed and implemented the user interface for my personal portfolio website, focusing on clean layouts, smooth interactions, and intuitive navigation.",
-    longDescription: "Created the complete UI design system for this portfolio website, from initial wireframes to final implementation. The design emphasizes a dark theme with glassmorphism effects, gradient accents, and smooth transitions. I focused on making the portfolio showcase intuitive with clear category filtering, easy project browsing, and a detailed project view modal. The responsive design works well on all screen sizes, and the atomic design approach made it easy to maintain consistent styling across components. The UI balances visual appeal with functionality, ensuring visitors can easily explore my work without getting lost. You can view the interactive design mockup to see the color palette, typography system, component designs, and layout structure.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+    longDescription: "Created the complete UI design system for this portfolio website, from initial wireframes to final implementation. The design emphasizes a dark theme with glassmorphism effects, gradient accents, and smooth transitions. I focused on making the portfolio showcase intuitive with clear category filtering, easy project browsing, and a detailed project view modal. The responsive design works well on all screen sizes, and the atomic design approach made it easy to maintain consistent styling across components. The UI balances visual appeal with functionality, ensuring visitors can easily explore my work without getting lost.",
+    image: "/images/projects/3d/Screenshot (2).png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "iframe", url: "/ui-ux-mockups/portfolio-ui-design.html", title: "Interactive Design Mockup" }
+      { type: "image", url: "/images/projects/3d/Screenshot (2).png" }
     ],
     technologies: ["Figma", "React", "Tailwind CSS", "Shadcn UI"],
     programming: [],
     category: "UI/UX Design",
-    liveLink: "/ui-ux-mockups/portfolio-ui-design.html",
+    liveLink: null,
     githubLink: null,
     date: "2024",
     features: [
@@ -61,11 +61,11 @@ export const projects = [
     title: "Login & Signup Flow Redesign",
     description: "Redesigned the authentication flow for better user experience, focusing on clear form layouts, helpful validation messages, and smooth error handling.",
     longDescription: "Worked on improving the login and signup experience for the portfolio platform. The original forms were functional but felt a bit clunky. I redesigned them with better spacing, clearer labels, and more helpful validation feedback. Added real-time validation that shows errors as users type, which helps prevent frustration. The forms now have a cleaner look that matches the rest of the site's design language. Also improved the error messages to be more specific and actionable, so users know exactly what went wrong and how to fix it.",
-    image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop",
+    image: "/images/projects/3d/Screenshot (3).png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "iframe", url: "/ui-ux-mockups/login-signup-flow.html", title: "Form Design Mockup" }
+      { type: "image", url: "/images/projects/3d/Screenshot (3).png" }
     ],
     technologies: ["React", "Tailwind CSS", "Form Validation"],
     programming: [],
@@ -88,17 +88,17 @@ export const projects = [
     id: 37,
     title: "Project Gallery Interface",
     description: "Designed an intuitive project gallery interface that makes it easy to browse and filter through different project categories and view detailed project information.",
-    longDescription: "Built the project gallery interface for showcasing my work across different categories. The design uses a card-based layout that works well for both images and videos. I added category filtering so visitors can quickly find what they're interested in. The project detail modal shows all the important information - images, videos, descriptions, technologies used - in a clean, organized way. Navigation between projects within the modal makes it easy to browse without going back to the main gallery. The interface adapts well to different screen sizes, with the grid adjusting from multiple columns on desktop to a single column on mobile. Check out the interactive mockup to see the filtering system, card layouts, and modal design in action.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+    longDescription: "Built the project gallery interface for showcasing my work across different categories. The design uses a card-based layout that works well for both images and videos. I added category filtering so visitors can quickly find what they're interested in. The project detail modal shows all the important information - images, videos, descriptions, technologies used - in a clean, organized way. Navigation between projects within the modal makes it easy to browse without going back to the main gallery. The interface adapts well to different screen sizes, with the grid adjusting from multiple columns on desktop to a single column on mobile.",
+    image: "/images/projects/3d/Screenshot (4).png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "iframe", url: "/ui-ux-mockups/project-gallery-interface.html", title: "Gallery Interface Mockup" }
+      { type: "image", url: "/images/projects/3d/Screenshot (4).png" }
     ],
     technologies: ["React", "Tailwind CSS", "Responsive Design"],
     programming: [],
     category: "UI/UX Design",
-    liveLink: "/ui-ux-mockups/project-gallery-interface.html",
+    liveLink: null,
     githubLink: null,
     date: "2024",
     features: [
@@ -220,12 +220,7 @@ export const projects = [
       { type: "image", url: "/images/projects/3d/Mat4.png" },
       { type: "image", url: "/images/projects/3d/MatRender.png" },
       { type: "image", url: "/images/projects/3d/IMG_20241023_050226.png" },
-      { type: "image", url: "/images/projects/3d/IMG_20241023_050327.png" },
-      { type: "image", url: "/images/projects/3d/Screenshot (1).png" },
-      { type: "image", url: "/images/projects/3d/Screenshot (2).png" },
-      { type: "image", url: "/images/projects/3d/Screenshot (3).png" },
-      { type: "image", url: "/images/projects/3d/Screenshot (4).png" },
-      { type: "image", url: "/images/projects/3d/Screenshot (5).png" }
+      { type: "image", url: "/images/projects/3d/IMG_20241023_050327.png" }
     ],
     technologies: ["Blender", "3D Modeling", "Furniture Design", "Product Visualization"],
     programming: [],
@@ -549,18 +544,17 @@ export const projects = [
     title: "RoninDesignz - Full-Stack Portfolio Platform",
     description: "A modern, professional full-stack web application featuring user authentication, member management, interactive 3D visualizations, and a dynamic portfolio showcase. Built with React, Express.js, and Three.js using atomic design principles.",
     longDescription: "Developed a comprehensive full-stack portfolio platform that combines modern web technologies with interactive 3D experiences. The application features a complete authentication system with user registration and login functionality, member management API, and a dynamic portfolio showcase for 3D renders and projects. Built using atomic design principles, the frontend is constructed with React 18, Vite, and Shadcn UI components, providing a clean, maintainable codebase. The backend is powered by Express.js with RESTful API endpoints for member management and authentication. The platform includes interactive Three.js scenes with advanced shader effects, parallax scrolling animations, and a responsive design that works seamlessly across all devices. Form validation, error handling, and a centralized configuration system ensure robust functionality. The application serves as both a portfolio showcase and a demonstration of full-stack development capabilities, integrating frontend interactivity with backend data management.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop",
+    image: "/images/projects/3d/Screenshot (5).png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "image", url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop" },
-      { type: "image", url: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop" }
+      { type: "image", url: "/images/projects/3d/Screenshot (5).png" }
     ],
     technologies: ["React", "Express.js", "Vite", "Three.js", "React Router", "Shadcn UI", "Tailwind CSS", "Node.js"],
     programming: ["JavaScript", "ES6 Modules", "JSX"],
     category: "Programming & Software Development",
-    liveLink: null,
-    githubLink: null,
+    liveLink: "https://ronindesignz.netlify.app",
+    githubLink: "https://github.com/RONIN-OP06/RoninDesignzPortfoli0",
     date: "2024",
     features: [
       "Full-stack architecture with React frontend and Express.js backend",

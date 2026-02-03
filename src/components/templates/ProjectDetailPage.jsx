@@ -54,7 +54,7 @@ export function ProjectDetailPage() {
               alt={project.title}
               className="w-full h-[400px] md:h-[500px] object-cover"
               onError={(e) => {
-                e.target.src = "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop"
+                e.target.src = "/images/projects/3d/Screenshot (5).png"
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />

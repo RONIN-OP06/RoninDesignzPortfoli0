@@ -27,8 +27,8 @@ const PageLoader = () => (
 
 function AppContent() {
   const location = useLocation()
-  // only show 3d scene on signup/login pages
-  const showThreeScene = location.pathname === "/signup" || location.pathname === "/login"
+  // show 3d scene on auth + contact pages
+  const showThreeScene = ["/signup", "/login", "/contact"].includes(location.pathname)
 
   return (
     <>

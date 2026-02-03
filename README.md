@@ -238,11 +238,9 @@ The project includes comprehensive documentation:
 
 - **[SECURITY.md](./SECURITY.md)** - Overview of the security framework and measures implemented in the application.
 
-- **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - High-level project overview, statistics, and key achievements.
+- **[FAUNA_SETUP.md](./FAUNA_SETUP.md)** - Complete guide for setting up FaunaDB database integration.
 
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)** - Guidelines for contributing to the project, including code style and pull request process.
-
-- **[QUICK_START.md](./QUICK_START.md)** - Quick start guide for getting the project up and running.
 
 ---
 
