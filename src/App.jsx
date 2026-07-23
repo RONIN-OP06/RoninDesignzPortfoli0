@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom"
 import { Suspense, lazy } from "react"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { Navigation } from "@/components/molecules/Navigation"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
 
 // lazy load pages for code splitting
 const HomePage = lazy(() => import("@/components/templates/HomePage").then(m => ({ default: m.HomePage })))
@@ -39,6 +40,7 @@ function AppContent() {
       )}
       <div className={`min-h-screen antialiased ${location.pathname === '/' ? '' : 'bg-background'}`}>
         <Navigation />
+        <ErrorBoundary>
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -52,6 +54,7 @@ function AppContent() {
             <Route path="/admin/settings" element={<SiteSettingsPage />} />
           </Routes>
         </Suspense>
+        </ErrorBoundary>
       </div>
     </>
   )
