@@ -137,6 +137,30 @@ export async function getMemberById(id) {
 }
 
 /**
+ * Get a single message by id (used by messages.js to verify a message exists
+ * before updating it). Mirrors getMemberById on the MESSAGES collection; returns
+ * null when the message is not found.
+ */
+export async function getMessageById(id) {
+  try {
+    const faunaClient = getClient();
+    const response = await faunaClient.query(
+      query.Get(query.Ref(query.Collection(COLLECTIONS.MESSAGES), id))
+    );
+
+    return {
+      id: response.ref.id,
+      ...response.data
+    };
+  } catch (error) {
+    if (error.message && error.message.includes('not found')) {
+      return null;
+    }
+    throw error;
+  }
+}
+
+/**
  * Create a new member
  */
 export async function createMember(memberData) {
