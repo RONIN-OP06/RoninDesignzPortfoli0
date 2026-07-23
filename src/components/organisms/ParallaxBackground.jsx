@@ -106,9 +106,9 @@ export const ParallaxBackground = memo(function ParallaxBackground() {
       `
     })
     
-      const bgPlane = new THREE.Mesh(bgGeometry, bgMaterial)
-      bgPlane.position.z = -10
-      scene.add(bgPlane)
+      // NOTE: the shader background plane was a 2x2 plane at z=-10, which rendered
+      // as a small dark square behind the hero text (a glitch). We rely on the CSS
+      // dark background instead and keep only the subtle floating particles below.
 
       const particleCount = useSimpleMode ? 50 : 200
       particles = new THREE.BufferGeometry()

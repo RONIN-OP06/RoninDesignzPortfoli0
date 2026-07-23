@@ -724,24 +724,24 @@ export function PortfolioPage() {
         {/* stats */}
         <section className="bg-card/50 backdrop-blur-xl rounded-3xl p-8 sm:p-12 border border-border/50">
           <h2 className="text-3xl sm:text-4xl font-bold text-center mb-12">
-            <GradientText>My Experience</GradientText>
+            <GradientText>At a Glance</GradientText>
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
-              <div className="text-5xl font-bold text-red-400 mb-2">{projects.length}+</div>
-              <div className="text-muted-foreground">Projects Completed</div>
+              <div className="text-4xl sm:text-5xl font-bold text-red-400 mb-2">{projects.length}+</div>
+              <div className="text-muted-foreground">Projects</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-purple-400 mb-2">100%</div>
-              <div className="text-muted-foreground">Client Satisfaction</div>
+              <div className="text-4xl sm:text-5xl font-bold text-purple-400 mb-2">5</div>
+              <div className="text-muted-foreground">Disciplines</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-blue-400 mb-2">1+</div>
-              <div className="text-muted-foreground">Years Experience</div>
+              <div className="text-4xl sm:text-5xl font-bold text-blue-400 mb-2">30+</div>
+              <div className="text-muted-foreground">Tools &amp; Technologies</div>
             </div>
             <div>
-              <div className="text-5xl font-bold text-yellow-400 mb-2">24/7</div>
-              <div className="text-muted-foreground">Available for Projects</div>
+              <div className="text-4xl sm:text-5xl font-bold text-green-400 mb-2">Open</div>
+              <div className="text-muted-foreground">to opportunities</div>
             </div>
           </div>
         </section>
