@@ -25,13 +25,6 @@ export const handler = async (event, context) => {
     return handleMethodNotAllowed(['POST']);
   }
 
-  // Check database configuration
-  if (!process.env.FAUNA_SECRET_KEY) {
-    return errorResponse(
-      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
-      503
-    );
-  }
 
   // Initialize database (non-blocking, cached)
   initializeDatabase().catch(err => {

@@ -1,361 +1,147 @@
 /**
- * Database utility using Fauna DB
- * Clean, simple implementation focused on reliability
+ * Database utility using Netlify Blobs.
+ *
+ * Migrated off Fauna DB (the Fauna hosted service shut down on 2025-05-30). Netlify
+ * Blobs is built into the Netlify deploy — no external service, account, or API key
+ * is required; the store is auto-configured from the function's Netlify context.
+ *
+ * Each "collection" is a Blobs store; each record is one JSON blob keyed by its id.
+ * The exported function signatures are unchanged, so the functions that import this
+ * module (login, members, contact, messages, projects, setup-admins) are untouched.
  */
 
-import faunadb from 'faunadb';
+import { getStore } from '@netlify/blobs';
 
-const { Client, query } = faunadb;
-
-// Fauna client singleton
-let client = null;
-
-function getClient() {
-  if (!client) {
-    const secret = process.env.FAUNA_SECRET_KEY;
-    
-    if (!secret) {
-      throw new Error('FAUNA_SECRET_KEY not configured. Set it in Netlify environment variables.');
-    }
-    
-    client = new Client({ 
-      secret,
-      keepAlive: false,
-      timeout: 10000 // 10 second timeout
-    });
-  }
-  
-  return client;
+// Strong consistency so a freshly-created record (e.g. a new member) is immediately
+// visible to the uniqueness check and to the next login. Volume here is tiny.
+function store(name) {
+  return getStore({ name, consistency: 'strong' });
 }
 
-const COLLECTIONS = {
-  MEMBERS: 'members',
-  MESSAGES: 'messages',
-  PROJECTS: 'projects'
-};
+function newId() {
+  return (globalThis.crypto?.randomUUID?.() ||
+    (Date.now().toString(36) + Math.random().toString(36).slice(2, 10)));
+}
 
-// Cache initialization state
-let initPromise = null;
-let initComplete = false;
+// Read every record in a store as [{ id, ...data }]. Fine at this scale (a handful
+// of members/messages); returns [] on any error, matching the old behaviour.
+async function readAll(name) {
+  const s = store(name);
+  const { blobs } = await s.list();
+  const out = [];
+  for (const b of blobs) {
+    const rec = await s.get(b.key, { type: 'json' });
+    if (rec) out.push({ id: b.key, ...rec });
+  }
+  return out;
+}
 
-/**
- * Initialize database - creates collections and indexes if needed
- * Idempotent and cached
- */
+/** No schema to create with Blobs — kept for API compatibility. */
 export async function initializeDatabase() {
-  if (initComplete) return true;
-  if (initPromise) return initPromise;
-  
-  initPromise = (async () => {
-    try {
-      const faunaClient = getClient();
-      
-      // Create collections
-      const collections = [COLLECTIONS.MEMBERS, COLLECTIONS.MESSAGES, COLLECTIONS.PROJECTS];
-      await Promise.allSettled(
-        collections.map(name =>
-          faunaClient.query(
-            query.If(
-              query.Exists(query.Collection(name)),
-              true,
-              query.CreateCollection({ name })
-            )
-          )
-        )
-      );
-      
-      // Create email index for members
-      await faunaClient.query(
-        query.If(
-          query.Exists(query.Index('members_by_email')),
-          true,
-          query.CreateIndex({
-            name: 'members_by_email',
-            source: query.Collection(COLLECTIONS.MEMBERS),
-            terms: [{ field: ['data', 'email'] }],
-            unique: true
-          })
-        )
-      ).catch(() => {}); // Ignore if already exists
-      
-      initComplete = true;
-      return true;
-    } catch (error) {
-      console.error('[DB] Initialization error:', error.message);
-      initPromise = null; // Allow retry
-      throw error;
-    }
-  })();
-  
-  return initPromise;
+  return true;
 }
 
-/**
- * Get member by email
- */
-export async function getMemberByEmail(email) {
-  try {
-    const faunaClient = getClient();
-    const emailLower = email.toLowerCase().trim();
-    
-    const response = await faunaClient.query(
-      query.Get(query.Match(query.Index('members_by_email'), emailLower))
-    );
-    
-    return {
-      id: response.ref.id,
-      ...response.data
-    };
-  } catch (error) {
-    if (error.message && error.message.includes('not found')) {
-      return null;
-    }
-    throw error;
-  }
-}
+// ---- Members ---------------------------------------------------------------
 
-/**
- * Get member by ID
- */
-export async function getMemberById(id) {
-  try {
-    const faunaClient = getClient();
-    const response = await faunaClient.query(
-      query.Get(query.Ref(query.Collection(COLLECTIONS.MEMBERS), id))
-    );
-    
-    return {
-      id: response.ref.id,
-      ...response.data
-    };
-  } catch (error) {
-    if (error.message && error.message.includes('not found')) {
-      return null;
-    }
-    throw error;
-  }
-}
-
-/**
- * Get a single message by id (used by messages.js to verify a message exists
- * before updating it). Mirrors getMemberById on the MESSAGES collection; returns
- * null when the message is not found.
- */
-export async function getMessageById(id) {
-  try {
-    const faunaClient = getClient();
-    const response = await faunaClient.query(
-      query.Get(query.Ref(query.Collection(COLLECTIONS.MESSAGES), id))
-    );
-
-    return {
-      id: response.ref.id,
-      ...response.data
-    };
-  } catch (error) {
-    if (error.message && error.message.includes('not found')) {
-      return null;
-    }
-    throw error;
-  }
-}
-
-/**
- * Create a new member
- */
-export async function createMember(memberData) {
-  const faunaClient = getClient();
-  
-  // Check if email already exists
-  const existing = await getMemberByEmail(memberData.email);
-  if (existing) {
-    throw new Error('Email already registered');
-  }
-  
-  const data = {
-    ...memberData,
-    email: memberData.email.toLowerCase().trim(),
-    createdAt: new Date().toISOString()
-  };
-  
-  const response = await faunaClient.query(
-    query.Create(
-      query.Collection(COLLECTIONS.MEMBERS),
-      { data }
-    )
-  );
-  
-  return {
-    id: response.ref.id,
-    ...response.data
-  };
-}
-
-/**
- * Update a member
- */
-export async function updateMember(id, updates) {
-  const faunaClient = getClient();
-  
-  const response = await faunaClient.query(
-    query.Update(
-      query.Ref(query.Collection(COLLECTIONS.MEMBERS), id),
-      { data: updates }
-    )
-  );
-  
-  return {
-    id: response.ref.id,
-    ...response.data
-  };
-}
-
-/**
- * Get all members
- */
 export async function getMembers() {
   try {
-    const faunaClient = getClient();
-    const response = await faunaClient.query(
-      query.Map(
-        query.Paginate(query.Documents(query.Collection(COLLECTIONS.MEMBERS))),
-        query.Lambda('ref', query.Get(query.Var('ref')))
-      )
-    );
-    
-    return response.data.map(item => ({
-      id: item.ref.id,
-      ...item.data
-    }));
+    return await readAll('members');
   } catch (error) {
     console.error('[DB] Error getting members:', error.message);
     return [];
   }
 }
 
-/**
- * Get all messages
- */
+export async function getMemberByEmail(email) {
+  const emailLower = String(email || '').toLowerCase().trim();
+  const members = await getMembers();
+  return members.find(m => String(m.email || '').toLowerCase().trim() === emailLower) || null;
+}
+
+export async function getMemberById(id) {
+  const rec = await store('members').get(String(id), { type: 'json' });
+  return rec ? { id: String(id), ...rec } : null;
+}
+
+export async function createMember(memberData) {
+  const existing = await getMemberByEmail(memberData.email);
+  if (existing) {
+    throw new Error('Email already registered');
+  }
+  const id = newId();
+  const data = {
+    ...memberData,
+    email: String(memberData.email).toLowerCase().trim(),
+    createdAt: new Date().toISOString(),
+  };
+  await store('members').setJSON(id, data);
+  return { id, ...data };
+}
+
+export async function updateMember(id, updates) {
+  const s = store('members');
+  const rec = await s.get(String(id), { type: 'json' });
+  if (!rec) throw new Error('Member not found');
+  const data = { ...rec, ...updates };
+  await s.setJSON(String(id), data);
+  return { id: String(id), ...data };
+}
+
+// ---- Messages --------------------------------------------------------------
+
 export async function getMessages() {
   try {
-    const faunaClient = getClient();
-    const response = await faunaClient.query(
-      query.Map(
-        query.Paginate(query.Documents(query.Collection(COLLECTIONS.MESSAGES))),
-        query.Lambda('ref', query.Get(query.Var('ref')))
-      )
-    );
-    
-    return response.data.map(item => ({
-      id: item.ref.id,
-      ...item.data
-    }));
+    return await readAll('messages');
   } catch (error) {
     console.error('[DB] Error getting messages:', error.message);
     return [];
   }
 }
 
-/**
- * Create a message
- */
+export async function getMessageById(id) {
+  const rec = await store('messages').get(String(id), { type: 'json' });
+  return rec ? { id: String(id), ...rec } : null;
+}
+
 export async function createMessage(messageData) {
-  const faunaClient = getClient();
-  
+  const id = newId();
   const data = {
     ...messageData,
     createdAt: new Date().toISOString(),
-    read: false
+    read: false,
   };
-  
-  const response = await faunaClient.query(
-    query.Create(
-      query.Collection(COLLECTIONS.MESSAGES),
-      { data }
-    )
-  );
-  
-  return {
-    id: response.ref.id,
-    ...response.data
-  };
+  await store('messages').setJSON(id, data);
+  return { id, ...data };
 }
 
-/**
- * Update a message
- */
 export async function updateMessage(id, updates) {
-  const faunaClient = getClient();
-  
-  const response = await faunaClient.query(
-    query.Update(
-      query.Ref(query.Collection(COLLECTIONS.MESSAGES), id),
-      { data: updates }
-    )
-  );
-  
-  return {
-    id: response.ref.id,
-    ...response.data
-  };
+  const s = store('messages');
+  const rec = await s.get(String(id), { type: 'json' });
+  if (!rec) throw new Error('Message not found');
+  const data = { ...rec, ...updates };
+  await s.setJSON(String(id), data);
+  return { id: String(id), ...data };
 }
 
-/**
- * Get all projects
- */
+// ---- Projects (optional; the public site reads static data) ----------------
+
 export async function getProjects() {
   try {
-    const faunaClient = getClient();
-    const response = await faunaClient.query(
-      query.Map(
-        query.Paginate(query.Documents(query.Collection(COLLECTIONS.PROJECTS))),
-        query.Lambda('ref', query.Get(query.Var('ref')))
-      )
-    );
-    
-    return response.data.map(item => ({
-      id: item.ref.id,
-      ...item.data
-    }));
+    return await readAll('projects');
   } catch (error) {
     console.error('[DB] Error getting projects:', error.message);
     return [];
   }
 }
 
-/**
- * Create a project
- */
 export async function createProject(projectData) {
-  const faunaClient = getClient();
-  
-  const data = {
-    ...projectData,
-    createdAt: new Date().toISOString()
-  };
-  
-  const response = await faunaClient.query(
-    query.Create(
-      query.Collection(COLLECTIONS.PROJECTS),
-      { data }
-    )
-  );
-  
-  return {
-    id: response.ref.id,
-    ...response.data
-  };
+  const id = newId();
+  const data = { ...projectData, createdAt: new Date().toISOString() };
+  await store('projects').setJSON(id, data);
+  return { id, ...data };
 }
 
-/**
- * Delete a project
- */
 export async function deleteProject(id) {
-  const faunaClient = getClient();
-  
-  await faunaClient.query(
-    query.Delete(query.Ref(query.Collection(COLLECTIONS.PROJECTS), id))
-  );
-  
+  await store('projects').delete(String(id));
   return true;
 }

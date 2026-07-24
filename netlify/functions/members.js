@@ -9,24 +9,7 @@ export const handler = async (event, context) => {
     return handleOptions();
   }
 
-  // Best practice: Check if database is configured with validation
-  if (!process.env.FAUNA_SECRET_KEY) {
-    console.error('[MEMBERS] FAUNA_SECRET_KEY not configured');
-    return errorResponse(
-      'Database not configured. Please set FAUNA_SECRET_KEY in Netlify environment variables.',
-      503
-    );
-  }
   
-  // Best practice: Validate key format
-  const key = process.env.FAUNA_SECRET_KEY;
-  if (!key.startsWith('fn') || key.length < 40) {
-    console.error('[MEMBERS] FAUNA_SECRET_KEY appears invalid');
-    return errorResponse(
-      'Invalid FAUNA_SECRET_KEY format. Get your key from https://dashboard.fauna.com/',
-      503
-    );
-  }
 
   // Initialize database (non-blocking, cached)
   initializeDatabase().catch(err => {

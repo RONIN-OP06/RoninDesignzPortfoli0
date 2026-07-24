@@ -33,6 +33,7 @@
     "url": "https://github.com/RONIN-OP06/RoninDesignzPortfoli0.git"
   },
   "dependencies": {
+    "@netlify/blobs": "^10.7.9",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-slot": "^1.0.2",
     "bcryptjs": "^2.4.3",
@@ -43,7 +44,6 @@
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
-    "faunadb": "^4.8.2",
     "helmet": "^8.1.0",
     "lucide-react": "^0.309.0",
     "multer": "^2.0.2",
