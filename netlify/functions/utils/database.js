@@ -44,49 +44,64 @@ export async function initializeDatabase() {
 }
 
 // ---- Members ---------------------------------------------------------------
+// Members are keyed by their normalized email (a natural unique id), so
+// getMemberByEmail / getMemberById are DIRECT key reads — immediately consistent
+// after a write (no eventual-consistency lag on login / signup). Blobs list() is
+// only eventually consistent, so it's used solely for the admin "all members"
+// view, where a few seconds of replication lag is harmless.
+
+const memberKey = (email) => String(email || '').toLowerCase().trim();
+
+export async function getMemberByEmail(email) {
+  const key = memberKey(email);
+  if (!key) return null;
+  const rec = await store('members').get(key, { type: 'json' });
+  return rec ? { id: key, ...rec } : null;
+}
+
+export async function getMemberById(id) {
+  // ids ARE the normalized email (members are keyed by email).
+  const key = memberKey(id);
+  if (!key) return null;
+  const rec = await store('members').get(key, { type: 'json' });
+  return rec ? { id: key, ...rec } : null;
+}
+
+export async function createMember(memberData) {
+  const key = memberKey(memberData.email);
+  if (!key) throw new Error('Email is required');
+  const existing = await store('members').get(key, { type: 'json' });
+  if (existing) throw new Error('Email already registered');
+  const data = { ...memberData, email: key, createdAt: new Date().toISOString() };
+  await store('members').setJSON(key, data);
+  return { id: key, ...data };
+}
+
+export async function updateMember(id, updates) {
+  const key = memberKey(id);
+  const s = store('members');
+  const rec = await s.get(key, { type: 'json' });
+  if (!rec) throw new Error('Member not found');
+  const { email: _email, ...rest } = updates;   // email is the key; don't drift it
+  const data = { ...rec, ...rest };
+  await s.setJSON(key, data);
+  return { id: key, ...data };
+}
 
 export async function getMembers() {
   try {
-    return await readAll('members');
+    const all = await readAll('members');
+    // De-duplicate by email (guards against any legacy id-keyed records).
+    const byEmail = new Map();
+    for (const m of all) {
+      const e = memberKey(m.email);
+      if (e && !byEmail.has(e)) byEmail.set(e, { ...m, id: e });
+    }
+    return [...byEmail.values()];
   } catch (error) {
     console.error('[DB] Error getting members:', error.message);
     return [];
   }
-}
-
-export async function getMemberByEmail(email) {
-  const emailLower = String(email || '').toLowerCase().trim();
-  const members = await getMembers();
-  return members.find(m => String(m.email || '').toLowerCase().trim() === emailLower) || null;
-}
-
-export async function getMemberById(id) {
-  const rec = await store('members').get(String(id), { type: 'json' });
-  return rec ? { id: String(id), ...rec } : null;
-}
-
-export async function createMember(memberData) {
-  const existing = await getMemberByEmail(memberData.email);
-  if (existing) {
-    throw new Error('Email already registered');
-  }
-  const id = newId();
-  const data = {
-    ...memberData,
-    email: String(memberData.email).toLowerCase().trim(),
-    createdAt: new Date().toISOString(),
-  };
-  await store('members').setJSON(id, data);
-  return { id, ...data };
-}
-
-export async function updateMember(id, updates) {
-  const s = store('members');
-  const rec = await s.get(String(id), { type: 'json' });
-  if (!rec) throw new Error('Member not found');
-  const data = { ...rec, ...updates };
-  await s.setJSON(String(id), data);
-  return { id: String(id), ...data };
 }
 
 // ---- Messages --------------------------------------------------------------
