@@ -12,7 +12,7 @@ import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed }
 const ADMIN_ACCOUNTS = [
   {
     email: 'roninsyoutub123@gmail.com',
-    password: '1NCORRECT1a',
+    password: '1NCORRECT1!a',
     name: 'Admin User 1'
   },
   {
