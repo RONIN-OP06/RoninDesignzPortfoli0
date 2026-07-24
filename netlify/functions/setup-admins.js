@@ -1,11 +1,12 @@
 /**
- * Setup admin accounts in database
- * Run this once after setting up FaunaDB
+ * Setup admin accounts in the database (Netlify Blobs).
+ * Idempotent: purges any existing record(s) for each admin email, then creates a
+ * fresh account with a new random-id token.
  */
 
 import '../_shared/env-loader.js';
 import { connectLambda } from "@netlify/blobs";
-import { initializeDatabase, getMemberByEmail, createMember, updateMember } from './utils/database.js';
+import { initializeDatabase, createMember, deleteMembersByEmail } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
@@ -43,30 +44,18 @@ export const handler = async (event, context) => {
 
     for (const admin of ADMIN_ACCOUNTS) {
       const emailLower = admin.email.toLowerCase().trim();
-      const existing = await getMemberByEmail(emailLower);
-
-      // Hash password
       const hashedPassword = await bcrypt.hash(admin.password, 10);
 
-      if (existing) {
-        // Update existing account
-        await updateMember(existing.id, {
-          password: hashedPassword,
-          name: admin.name,
-          email: emailLower
-        });
-        results.push({ email: admin.email, action: 'updated' });
-        console.log(`[SETUP] Updated admin: ${admin.email}`);
-      } else {
-        // Create new account
-        await createMember({
-          email: emailLower,
-          password: hashedPassword,
-          name: admin.name
-        });
-        results.push({ email: admin.email, action: 'created' });
-        console.log(`[SETUP] Created admin: ${admin.email}`);
-      }
+      // Purge any existing record(s) for this email (including legacy email-keyed
+      // ones), then create a fresh account with a new random-id token.
+      await deleteMembersByEmail(emailLower);
+      await createMember({
+        email: emailLower,
+        password: hashedPassword,
+        name: admin.name
+      });
+      results.push({ email: admin.email, action: 'seeded' });
+      console.log(`[SETUP] Seeded admin: ${admin.email}`);
     }
 
     return successResponse(
