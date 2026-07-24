@@ -75,6 +75,8 @@ export const handler = async (event, context) => {
     );
   } catch (error) {
     console.error('[SETUP ERROR]', error);
-    return errorResponse('Failed to setup admin accounts', 500, error);
+    // TEMP diagnostic: surface the real error + a build marker so we can tell
+    // whether the Blobs code is live and what is actually failing.
+    return errorResponse('setup-admins[blobs-v1]: ' + (error?.name || '') + ': ' + (error?.message || String(error)), 500);
   }
 };
