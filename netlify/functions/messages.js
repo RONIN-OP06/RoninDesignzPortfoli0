@@ -1,4 +1,5 @@
 import '../_shared/env-loader.js'; // Load .env in local dev
+import { connectLambda } from "@netlify/blobs";
 import { getMessages, getMessageById, updateMessage, initializeDatabase, getMemberById } from './utils/database.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
@@ -25,6 +26,8 @@ async function isAdmin(authHeader) {
 }
 
 export const handler = async (event, context) => {
+  // Bootstrap Netlify Blobs for this classic (Lambda-compatible) function.
+  try { connectLambda(event); } catch (e) { /* Blobs env unavailable */ }
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return handleOptions();

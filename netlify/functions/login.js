@@ -3,6 +3,7 @@
  */
 
 import '../_shared/env-loader.js';
+import { connectLambda } from "@netlify/blobs";
 import { getMemberByEmail, updateMember, initializeDatabase } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 import { validateEmail, sanitizeInput } from './utils/validation.js';
@@ -15,6 +16,8 @@ const ADMIN_EMAILS = [
 ].map(e => e.trim().toLowerCase());
 
 export const handler = async (event, context) => {
+  // Bootstrap Netlify Blobs for this classic (Lambda-compatible) function.
+  try { connectLambda(event); } catch (e) { /* Blobs env unavailable */ }
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return handleOptions();

@@ -4,6 +4,7 @@
  */
 
 import '../_shared/env-loader.js';
+import { connectLambda } from "@netlify/blobs";
 import { initializeDatabase, getMemberByEmail, createMember, updateMember } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
@@ -23,6 +24,8 @@ const ADMIN_ACCOUNTS = [
 ];
 
 export const handler = async (event, context) => {
+  // Bootstrap Netlify Blobs for this classic (Lambda-compatible) function.
+  try { connectLambda(event); } catch (e) { /* Blobs env unavailable */ }
   if (event.httpMethod === 'OPTIONS') {
     return handleOptions();
   }

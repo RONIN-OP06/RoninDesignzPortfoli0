@@ -1,9 +1,12 @@
 import '../_shared/env-loader.js'; // Load .env in local dev
+import { connectLambda } from "@netlify/blobs";
 import { createMessage, initializeDatabase } from './utils/database.js';
 import { validateEmail, validateName, sanitizeInput } from './utils/validation.js';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
 export const handler = async (event, context) => {
+  // Bootstrap Netlify Blobs for this classic (Lambda-compatible) function.
+  try { connectLambda(event); } catch (e) { /* Blobs env unavailable */ }
   if (event.httpMethod === 'OPTIONS') {
     return handleOptions();
   }
