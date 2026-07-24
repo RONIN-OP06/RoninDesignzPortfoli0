@@ -12,10 +12,12 @@
 
 import { getStore } from '@netlify/blobs';
 
-// Strong consistency so a freshly-created record (e.g. a new member) is immediately
-// visible to the uniqueness check and to the next login. Volume here is tiny.
+// Strong consistency isn't available to classic Lambda-compatible functions
+// (BlobsConsistencyError), so use the default (eventual) consistency. At this
+// volume the tiny replication lag is harmless: the admin is seeded once, and
+// signup/contact writes are read back later, not in the same request.
 function store(name) {
-  return getStore({ name, consistency: 'strong' });
+  return getStore(name);
 }
 
 function newId() {
