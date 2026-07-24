@@ -3,7 +3,7 @@ import { ParallaxBackground } from "@/components/organisms/ParallaxBackground"
 import { GradientText } from "@/components/atoms/GradientText"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
-import { ArrowRight, Code2, Box, Palette } from "lucide-react"
+import { ArrowRight, Code2, Box, Palette, Download } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { CONFIG } from "@/lib/config"
 import { AdminMessagesSection } from "@/components/organisms/AdminMessagesSection"
@@ -42,7 +42,7 @@ export const HomePage = memo(function HomePage() {
   // A curated selection across disciplines for the home page (falls back to the
   // first few if a title is ever renamed).
   const featured = useMemo(() => {
-    const preferred = ["Redbull 3D Model", "Portfolio Website UI Design", "Self Portrait - Bias Self"]
+    const preferred = ["Unified Platform — Engineering & Scientific Workbench", "Redbull 3D Model", "Portfolio Website UI Design"]
     const picks = preferred.map(t => projects.find(p => p.title === t)).filter(Boolean)
     return picks.length === 3 ? picks : projects.filter(p => p.image).slice(0, 3)
   }, [])
@@ -81,6 +81,11 @@ export const HomePage = memo(function HomePage() {
               </Button>
               <Button asChild size="lg" variant="outline" className="text-base px-7 py-6">
                 <Link to="/contact">Get in touch</Link>
+              </Button>
+              <Button asChild size="lg" variant="ghost" className="text-base px-7 py-6">
+                <a href="/resume/Ronin-Beerwinkel-CV.pdf" target="_blank" rel="noopener noreferrer">
+                  <Download className="mr-2 w-5 h-5" /> Download CV
+                </a>
               </Button>
             </div>
           </div>

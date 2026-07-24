@@ -33,11 +33,11 @@ export const projects = [
     title: "Portfolio Website UI Design",
     description: "Designed and implemented the user interface for my personal portfolio website, focusing on clean layouts, smooth interactions, and intuitive navigation.",
     longDescription: "Created the complete UI design system for this portfolio website, from initial wireframes to final implementation. The design emphasizes a dark theme with glassmorphism effects, gradient accents, and smooth transitions. I focused on making the portfolio showcase intuitive with clear category filtering, easy project browsing, and a detailed project view modal. The responsive design works well on all screen sizes, and the atomic design approach made it easy to maintain consistent styling across components. The UI balances visual appeal with functionality, ensuring visitors can easily explore my work without getting lost.",
-    image: "/images/projects/3d/Screenshot (2).png",
+    image: "/images/projects/ui/portfolio-ui-design.png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "image", url: "/images/projects/3d/Screenshot (2).png" }
+      { type: "image", url: "/images/projects/ui/portfolio-ui-design.png" }
     ],
     technologies: ["Figma", "React", "Tailwind CSS", "Shadcn UI"],
     programming: [],
@@ -61,11 +61,11 @@ export const projects = [
     title: "Login & Signup Flow Redesign",
     description: "Redesigned the authentication flow for better user experience, focusing on clear form layouts, helpful validation messages, and smooth error handling.",
     longDescription: "Worked on improving the login and signup experience for the portfolio platform. The original forms were functional but felt a bit clunky. I redesigned them with better spacing, clearer labels, and more helpful validation feedback. Added real-time validation that shows errors as users type, which helps prevent frustration. The forms now have a cleaner look that matches the rest of the site's design language. Also improved the error messages to be more specific and actionable, so users know exactly what went wrong and how to fix it.",
-    image: "/images/projects/3d/Screenshot (3).png",
+    image: "/images/projects/ui/login-signup-flow.png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "image", url: "/images/projects/3d/Screenshot (3).png" }
+      { type: "image", url: "/images/projects/ui/login-signup-flow.png" }
     ],
     technologies: ["React", "Tailwind CSS", "Form Validation"],
     programming: [],
@@ -89,11 +89,11 @@ export const projects = [
     title: "Project Gallery Interface",
     description: "Designed an intuitive project gallery interface that makes it easy to browse and filter through different project categories and view detailed project information.",
     longDescription: "Built the project gallery interface for showcasing my work across different categories. The design uses a card-based layout that works well for both images and videos. I added category filtering so visitors can quickly find what they're interested in. The project detail modal shows all the important information - images, videos, descriptions, technologies used - in a clean, organized way. Navigation between projects within the modal makes it easy to browse without going back to the main gallery. The interface adapts well to different screen sizes, with the grid adjusting from multiple columns on desktop to a single column on mobile.",
-    image: "/images/projects/3d/Screenshot (4).png",
+    image: "/images/projects/ui/project-gallery-interface.png",
     video: null,
     mediaType: "image",
     media: [
-      { type: "image", url: "/images/projects/3d/Screenshot (4).png" }
+      { type: "image", url: "/images/projects/ui/project-gallery-interface.png" }
     ],
     technologies: ["React", "Tailwind CSS", "Responsive Design"],
     programming: [],
@@ -570,6 +570,39 @@ export const projects = [
     ],
     challenges: "Integrating Three.js 3D scenes with React required careful state management and performance optimization to ensure smooth animations. Implementing the authentication system with file-based storage (JSON) while maintaining security best practices was a key challenge. Creating a cohesive user experience across multiple pages with consistent styling and navigation required careful attention to component architecture. The atomic design pattern helped organize the codebase, but required upfront planning to ensure proper component hierarchy. Handling video file serving with proper MIME types and CORS configuration for development and production environments required careful Express.js middleware setup.",
     results: "Successfully delivered a production-ready full-stack application that showcases both technical skills and creative work. The platform effectively demonstrates proficiency in modern web development, from frontend React development to backend API design. The atomic design architecture makes the codebase maintainable and easy to extend. The integration of 3D visualizations adds a unique, engaging element that sets the portfolio apart. The authentication and member management system provides a foundation for future features like user dashboards and project management capabilities."
+  },
+  {
+    id: 21,
+    title: "Unified Platform — Engineering & Scientific Workbench",
+    description: "A native C++20 desktop workbench for interactive engineering and scientific simulation — computational fluid dynamics, finite-element analysis, circuit simulation, DSP and 3D visualisation in one application.",
+    longDescription: "Unified Platform is a from-scratch C++20 desktop application that brings several engineering and scientific tools into a single, cohesive workbench — think Blender meets MATLAB for simulation. It features a validated incompressible Navier–Stokes CFD solver (benchmarked against the Ghia lid-driven-cavity results) with natural-convection and heated-body modes, a finite-element continuum solver for 2D/3D stress and free-vibration (modal) analysis, a circuit simulator with DC/transient/AC modified-nodal analysis including nonlinear devices and transformers, a DSP page with a radix-2 FFT, and an interactive 3D orbital viewport. Heavy solves run off the UI thread and stream their results into the viewport so you can watch a structure settle or a flow develop in real time. A recent milestone added two-way fluid–structure interaction: a deforming FEA part becomes a moving obstacle in the CFD solver, coupling heat and geometry both ways. The app is built on CMake with Dear ImGui, raylib and ImPlot for the interface, Eigen for linear algebra, and OpenMP for parallelism, with a headless self-test suite and a clean, benchmark-validated solver core.",
+    image: "/images/projects/software/unified-platform.png",
+    video: null,
+    mediaType: "image",
+    media: [
+      { type: "image", url: "/images/projects/software/unified-platform.png" },
+      { type: "image", url: "/images/projects/software/unified-platform-cfd.png" },
+      { type: "image", url: "/images/projects/software/unified-platform-circuit.png" },
+      { type: "image", url: "/images/projects/software/unified-platform-home.png" }
+    ],
+    technologies: ["C++20", "CMake", "Dear ImGui", "raylib", "ImPlot", "Eigen", "OpenMP"],
+    programming: ["C++20", "CMake", "GLSL"],
+    category: "Programming & Software Development",
+    liveLink: "",
+    githubLink: "",
+    date: "2026",
+    features: [
+      "Validated incompressible Navier–Stokes CFD solver (Ghia lid-driven-cavity benchmark) with natural convection",
+      "Finite-element continuum solver for 2D/3D stress and free-vibration (modal) analysis",
+      "Circuit simulator: DC / transient / AC modified-nodal analysis with nonlinear devices and transformers",
+      "Two-way fluid–structure interaction — a deforming FEA part drives the CFD obstacle",
+      "Signal-processing page with a radix-2 FFT and interactive spectrum plots",
+      "Interactive 3D orbital viewport with real-time, off-thread solving",
+      "Multi-page docked interface (Dear ImGui) with live plots (ImPlot)",
+      "Headless self-test suite and benchmark-validated solver core"
+    ],
+    challenges: "Building a numerically-stable, benchmark-validated simulation core in C++ while keeping the UI responsive was the central challenge. Heavy linear solves are run on worker threads and streamed into the viewport, which required careful state management and cancellation. Coupling independent solvers for two-way fluid–structure interaction meant designing a shared-geometry seam so a deforming mesh could be rasterised into the fluid solver without resetting the flow. Cross-platform builds (Windows and Apple-Silicon macOS) and a self-contained, dependency-pinned build round out the engineering effort.",
+    results: "A working, extensible scientific workbench with a validated solver core, real-time visualisation, and a clean, test-backed C++ codebase — demonstrating strong systems programming, numerical methods, and software-architecture skills."
   }
   // add more projects here if needed
 ]

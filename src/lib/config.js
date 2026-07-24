@@ -69,7 +69,7 @@ export const CONFIG = {
   
   MESSAGES: {
     SUBMITTING: 'Submitting...',
-    SUCCESS_PREFIX: 'Form submitted successfully! Welcome to RoninDezigns,',
+    SUCCESS_PREFIX: 'Form submitted successfully! Welcome to RoninDesignz,',
     ERROR_CONNECTION: 'Error connecting to server. Please make sure the backend server is running on port 3000.',
     ERROR_VALIDATION: 'Please fix all errors before submitting.'
   },

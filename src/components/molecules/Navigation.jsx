@@ -55,7 +55,7 @@ export const Navigation = memo(function Navigation() {
             className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-red-500 via-purple-600 to-blue-500 bg-clip-text text-transparent shrink-0"
             onClick={closeMobileMenu}
           >
-            RoninDezigns
+            RoninDesignz
           </Link>
           
           {/* Desktop Navigation */}

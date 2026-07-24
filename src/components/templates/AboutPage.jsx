@@ -2,7 +2,7 @@ import { GradientText } from "@/components/atoms/GradientText"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Link } from "react-router-dom"
-import { Code2, Box, Palette, ArrowRight } from "lucide-react"
+import { Code2, Box, Palette, ArrowRight, Download } from "lucide-react"
 
 const SKILLS = [
   {
@@ -117,7 +117,9 @@ export function AboutPage() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="text-base px-7 py-6">
-                <Link to="/contact">Get in touch</Link>
+                <a href="/resume/Ronin-Beerwinkel-CV.pdf" target="_blank" rel="noopener noreferrer">
+                  <Download className="mr-2 w-5 h-5" /> Download CV
+                </a>
               </Button>
             </div>
           </div>
