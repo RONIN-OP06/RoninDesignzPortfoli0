@@ -6,7 +6,7 @@
 
 import '../_shared/env-loader.js';
 import { connectLambda } from "@netlify/blobs";
-import { initializeDatabase, createMember, deleteMembersByEmail } from './utils/database.js';
+import { initializeDatabase, getMemberByEmail, createMember, updateMember, deleteMembersByEmail } from './utils/database.js';
 import bcrypt from 'bcryptjs';
 import { successResponse, errorResponse, handleOptions, handleMethodNotAllowed } from './utils/response.js';
 
@@ -45,17 +45,22 @@ export const handler = async (event, context) => {
     for (const admin of ADMIN_ACCOUNTS) {
       const emailLower = admin.email.toLowerCase().trim();
       const hashedPassword = await bcrypt.hash(admin.password, 10);
+      const existing = await getMemberByEmail(emailLower);
 
-      // Purge any existing record(s) for this email (including legacy email-keyed
-      // ones), then create a fresh account with a new random-id token.
-      await deleteMembersByEmail(emailLower);
-      await createMember({
-        email: emailLower,
-        password: hashedPassword,
-        name: admin.name
-      });
-      results.push({ email: admin.email, action: 'seeded' });
-      console.log(`[SETUP] Seeded admin: ${admin.email}`);
+      if (existing && !String(existing.id).includes('@')) {
+        // Proper random-id account already exists: just refresh password/name and
+        // KEEP its secret token id (lag-safe — no delete/create race).
+        await updateMember(existing.id, { password: hashedPassword, name: admin.name });
+        results.push({ email: admin.email, action: 'updated' });
+        console.log(`[SETUP] Updated admin: ${admin.email}`);
+      } else {
+        // No account, or a legacy email-keyed one: purge any legacy record, then
+        // create a fresh account with a new random-id (secret) token.
+        if (existing) await deleteMembersByEmail(emailLower);
+        await createMember({ email: emailLower, password: hashedPassword, name: admin.name });
+        results.push({ email: admin.email, action: 'created' });
+        console.log(`[SETUP] Created admin: ${admin.email}`);
+      }
     }
 
     return successResponse(
