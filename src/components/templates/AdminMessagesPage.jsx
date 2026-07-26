@@ -26,8 +26,12 @@ export function AdminMessagesPage() {
       setLoading(true)
       const response = await apiClient.getAllMessages()
       if (response.success) {
-        // response.data should be the array of messages
-        const messagesArray = Array.isArray(response.data) ? response.data : []
+        // The function wraps the payload: response.data = { success, message,
+        // data: { messages: [...] } }. Unwrap that (with fallbacks for other shapes).
+        const payload = response.data?.data ?? response.data ?? {}
+        const messagesArray = Array.isArray(payload.messages)
+          ? payload.messages
+          : Array.isArray(payload) ? payload : []
         // sort by newest first
         const sorted = messagesArray.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
         setMessages(sorted)
@@ -134,7 +138,7 @@ export function AdminMessagesPage() {
                             <span className="w-2 h-2 bg-red-500 rounded-full flex-shrink-0 mt-1"></span>
                           )}
                         </div>
-                        <p className="text-xs text-muted-foreground mb-1">{msg.userName}</p>
+                        <p className="text-xs text-muted-foreground mb-1">{msg.name}</p>
                         <p className="text-xs text-muted-foreground/70">
                           {formatDate(msg.createdAt)}
                         </p>
@@ -176,25 +180,25 @@ export function AdminMessagesPage() {
                       <div className="space-y-3">
                         <div>
                           <p className="text-sm text-muted-foreground">Name</p>
-                          <p className="font-medium">{selectedMessage.userName}</p>
+                          <p className="font-medium">{selectedMessage.name}</p>
                         </div>
                         <div>
                           <p className="text-sm text-muted-foreground">Email</p>
                           <a
-                            href={`mailto:${selectedMessage.userEmail}`}
+                            href={`mailto:${selectedMessage.email}`}
                             className="font-medium text-primary hover:underline"
                           >
-                            {selectedMessage.userEmail}
+                            {selectedMessage.email}
                           </a>
                         </div>
-                        {selectedMessage.userPhone && (
+                        {selectedMessage.phone && (
                           <div>
                             <p className="text-sm text-muted-foreground">Phone</p>
                             <a
-                              href={`tel:${selectedMessage.userPhone}`}
+                              href={`tel:${selectedMessage.phone}`}
                               className="font-medium text-primary hover:underline"
                             >
-                              {selectedMessage.userPhone}
+                              {selectedMessage.phone}
                             </a>
                           </div>
                         )}
@@ -219,18 +223,18 @@ export function AdminMessagesPage() {
                         variant="gradient"
                         className="flex-1"
                       >
-                        <a href={`mailto:${selectedMessage.userEmail}?subject=Re: ${selectedMessage.subject}`}>
+                        <a href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}>
                           <Mail className="w-4 h-4 mr-2" />
                           Reply via Email
                         </a>
                       </Button>
-                      {selectedMessage.userPhone && (
+                      {selectedMessage.phone && (
                         <Button
                           asChild
                           variant="outline"
                           className="flex-1"
                         >
-                          <a href={`tel:${selectedMessage.userPhone}`}>
+                          <a href={`tel:${selectedMessage.phone}`}>
                             <Phone className="w-4 h-4 mr-2" />
                             Call
                           </a>
