@@ -95,10 +95,13 @@ export const SignUpForm = memo(function SignUpForm() {
       })
 
       if (response.success) {
+        // Member is nested at response.data.data.member (API client wraps the
+        // function body under .data, which itself wraps the payload under .data).
+        const m = response.data?.data?.member ?? response.data?.member ?? {}
         const userData = {
-          id: response.data.member.id,
-          name: response.data.member.name,
-          email: response.data.member.email
+          id: m.id,
+          name: m.name,
+          email: m.email
         }
         login(userData)
         

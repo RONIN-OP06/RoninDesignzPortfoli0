@@ -46,7 +46,10 @@ export const LoginForm = memo(function LoginForm() {
       })
 
       if (response.success) {
-        const data = response.data || {}
+        // The API client returns { data: <functionBody> } and the function body is
+        // { success, message, data: { member, isAdmin } } — so the member is nested
+        // one level deeper. Unwrap defensively (fall back to the flatter shape).
+        const data = response.data?.data ?? response.data ?? {}
         const member = data.member || {}
         const isAdmin = data.isAdmin === true || member.isAdmin === true
 
